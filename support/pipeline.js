@@ -28,8 +28,8 @@ function createPayloadToSubmit(extractedResource, zittingId, bestuurseenheid, be
   const href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}`; //TODO: this is brittle
   return {
     href,
-    organisation: bestuurseenheid,
-    published: { uri: PUBLISHER_URI, key: KEY},
+    organization: bestuurseenheid,
+    publisher: { uri: PUBLISHER_URI, key: KEY},
     submittedResource: extractedResource
   };
 }
@@ -43,6 +43,7 @@ async function submitResource(payload){
   };
 
   const response = await request(options);
+  console.log(response);
   return response;
 }
 
