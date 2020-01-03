@@ -1,0 +1,27 @@
+{
+  "name": "besluit-publicatie-melding-service",
+  "version": "0.1.0",
+  "description": "mu-semtech service to notify automatic melding service when new publication",
+  "main": "app.js",
+  "dependencies": {
+    "@lblod/marawa": "0.6.0",
+    "@lblod/mu-auth-sudo": "^0.2.0",
+    "cron": "^1.3.0",
+    "graph-rdfa-processor": "^1.3.0",
+    "jsdom": "^11.6.2",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.1",
+    "lodash.flatten": "^4.4.0",
+    "lodash.uniq": "^4.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lblod/besluit-publicatie-melding-service"
+  },
+  "author": "redpencil.io",
+  "license": "MIT"
+}
