@@ -91,44 +91,26 @@ async function getTask(subjectUri){
   return  parseResult(result);
 }
 
-// async function getNonSubmittedResources(maxAttempts = 10){
-//   let queryStr = `
-//     PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
-//     PREFIX publicationStatus: <http://mu.semte.ch/vocabularies/ext/signing/publication-status/>
-//     PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
-//     PREFIX prov: <http://www.w3.org/ns/prov#>
+async function getPublishedResourcesWithoutAssociatedTask(){
+  let queryStr = `
+    PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
+    PREFIX nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
 
-//      SELECT DISTINCT ?graph ?resource ?status ?created ?numberOfRetries {
-//        GRAPH ?graph {
-//          ?resource a sign:PublishedResource;
-//                    <http://purl.org/dc/terms/created> ?created.
-//          ?resource <http://mu.semte.ch/vocabularies/ext/besluit-publicatie-publish-service/status> ${SUCCESS_PUBLICATIE_STATUS}.
-//          OPTIONAL{
+     SELECT DISTINCT ?resource {
+       GRAPH ?graph {
+         ?resource a sign:PublishedResource.
+         ?resource <http://mu.semte.ch/vocabularies/ext/besluit-publicatie-publish-service/status> <http://mu.semte.ch/vocabularies/ext/besluit-publicatie-publish-service/status/success>.
 
+         FILTER NOT EXISTS {
+          ?task nuao:involves ?resource.
+         }
+      }
+    }
+  `;
 
-//          }
-
-//          OPTIONAL{
-//             ?resource <http://mu.semte.ch/vocabularies/ext/besluit-publicatie-melding-service/number-of-retries> ?numberOfRetries.
-//          }
-//          OPTIONAL{
-//             ?resource <http://mu.semte.ch/vocabularies/ext/besluit-publicatie-melding-service/status> ?status.
-//          }
-//          FILTER (
-//           (!BOUND(?status)
-//            ||
-//            (?status IN (<http://mu.semte.ch/vocabularies/ext/besluit-publicatie-melding-service/status/failed>) && ?numberOfRetries < ${sparqlEscapeInt(maxAttempts)})
-//            ||
-//            ?status IN (<http://mu.semte.ch/vocabularies/ext/besluit-publicatie-melding-service/status/pending>)
-//           )
-//         )
-//       }
-//     }
-//   `;
-
-//   let res = await query(queryStr);
-//   return parseResult(res);
-// }
+  const res = await query(queryStr);
+  return parseResult(res);
+}
 
 async function getExtractedResourceDetailsFromPublishedResource(resource){
   let queryStr = `
@@ -163,34 +145,6 @@ async function getExtractedResourceDetailsFromPublishedResource(resource){
   let res = await query(queryStr);
   return parseResult(res);
 }
-
-
-// async function updateDownloadEvent(uri, numberOfRetries, newStatusUri){
-//   let q = `
-//     PREFIX    adms: <http://www.w3.org/ns/adms#>
-//     PREFIX    task: <http://redpencil.data.gift/vocabularies/tasks/>
-//     DELETE {
-//       GRAPH ${sparqlEscapeUri(DEFAULT_GRAPH)} {
-//         ${sparqlEscapeUri(uri)} adms:status ?status;
-//                                 task:numberOfRetries ?numberOfRetries.
-//       }
-//     }
-//     WHERE {
-//       GRAPH ${sparqlEscapeUri(DEFAULT_GRAPH)} {
-//         ${sparqlEscapeUri(uri)} adms:status ?status;
-//                                 task:numberOfRetries ?numberOfRetries.
-//       }
-//     }
-//     ;
-//     INSERT DATA {
-//       GRAPH ${sparqlEscapeUri(DEFAULT_GRAPH)} {
-//         ${sparqlEscapeUri(uri)} adms:status ${sparqlEscapeUri(newStatusUri)};
-//                                 task:numberOfRetries ${sparqlEscapeInt(numberOfRetries)}.
-//       }
-//     }
-//   `;
-//   await query(q);
-// }
 
 async function updateTask(uri, newStatusUri, numberOfRetries){
   let updated = Date.now();
@@ -237,8 +191,6 @@ function getPublishedResourcesFromDelta(delta) {
   return uniq(publishedResourceUris);
 }
 
-
-
 /*************************************************************
  * HELPERS
  *************************************************************/
@@ -258,17 +210,11 @@ const parseResult = function( result ) {
   });
 };
 
-// const filterPendingTimeout = function( timeout, status = PENDING_STATUS ) {
-//   return (resource) => {
-
-//     if(resource.status !== status)
-//       return true;
-
-//     let modifiedDate = new Date(resource.created);
-//     let currentDate = new Date();
-//     return ((currentDate - modifiedDate) / (1000 * 60 * 60)) >= parseInt(timeout);
-//   };
-// };
-
-export { createTask, getPendingTasks, updateTask, getTask, getPublishedResourcesFromDelta, getExtractedResourceDetailsFromPublishedResource,
+export { createTask,
+         getPendingTasks,
+         updateTask,
+         getTask,
+         getPublishedResourcesFromDelta,
+         getExtractedResourceDetailsFromPublishedResource,
+         getPublishedResourcesWithoutAssociatedTask,
          PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS}
