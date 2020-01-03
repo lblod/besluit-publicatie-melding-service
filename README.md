@@ -18,7 +18,7 @@ besluit-publicatie:
       MAX_ATTEMPTS: '10'
       PUBLISHER_URI: '"http://data.lblod.info/vendors/gelinkt-notuleren'
       SUBMISSION_ENDPOINT: 'http://automatic-submission-service/melding' # The target endpoint to submit to (required)
-      SOURCE_HOST: 'http://localhost:4202'
+      SOURCE_HOST: 'http://the.public.host.where.publication.is.availible' # (required)
       DEFAULT_GRAPH: 'http://mu.semte.ch/graphs/public'
     links:
       - database:database
