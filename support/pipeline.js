@@ -10,12 +10,20 @@ if(!SOURCE_HOST) throw 'Please provide SOURCE_HOST';
 if(!ENDPOINT) throw 'Please provide ENDPOINT';
 if(!KEY) throw 'Please provide KEY';
 
+const RESOURCE_TO_URL_TYPE_MAP = {
+  'http://mu.semte.ch/vocabularies/ext/Agenda': 'agenda',
+  'http://mu.semte.ch/vocabularies/ext/Besluitenlijst': 'besluitenlijst',
+  'http://mu.semte.ch/vocabularies/ext/Notulen': 'notulen',
+  'http://mu.semte.ch/vocabularies/ext/Uittreksel': 'uittreksels'
+};
+
 async function executeSubmitTask(task){
   const publishedResourcesDetail = await getExtractedResourceDetailsFromPublishedResource(task.involves);
 
   //Note: Probably, I should allow only one extracted resource from a publishedResource
   for(const prDetail of publishedResourcesDetail){
-    let payload = createPayloadToSubmit(prDetail.extractedResource,
+    let payload = createPayloadToSubmit(prDetail.type,
+                                        prDetail.extractedResource,
                                         prDetail.zittingId,
                                         prDetail.bestuurseenheid,
                                         prDetail.bestuurseenheidLabel,
@@ -24,8 +32,8 @@ async function executeSubmitTask(task){
   }
 }
 
-function createPayloadToSubmit(extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel){
-  const href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}`; //TODO: this is brittle
+function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel){
+  const href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`; //TODO: this is brittle
   return {
     href,
     organization: bestuurseenheid,
