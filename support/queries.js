@@ -65,7 +65,7 @@ async function getPendingTasks(){
   return  parseResult(result);
 }
 
-async function getTasksForRetry(maxAttempts){
+async function getFailedTasksForRetry(maxAttempts){
   let q = `
     PREFIX    adms: <http://www.w3.org/ns/adms#>
     PREFIX    mu: <http://mu.semte.ch/vocabularies/core/>
@@ -240,7 +240,7 @@ const parseResult = function( result ) {
 
 export { createTask,
          getPendingTasks,
-         getTasksForRetry,
+         getFailedTasksForRetry,
          updateTask,
          getTask,
          getPublishedResourcesFromDelta,

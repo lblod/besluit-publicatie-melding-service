@@ -2,7 +2,7 @@ import { app, errorHandler } from 'mu';
 import { PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS } from './support/queries' ;
 import { waitForDatabase } from './database-utils';
 import { getPendingTasks,
-         getTasksForRetry,
+         getFailedTasksForRetry,
          createTask,
          updateTask,
          getTask,
@@ -77,7 +77,7 @@ async function scheduleRetryProcessing(task){
 }
 
 async function rescheduleTasksOnStart(){
-  const tasks = [ ...(await getPendingTasks()), ...(await getTasksForRetry(MAX_ATTEMPTS)) ];
+  const tasks = [ ...(await getPendingTasks()), ...(await getFailedTasksForRetry(MAX_ATTEMPTS)) ];
   for(let task of tasks){
     try {
       await scheduleRetryProcessing(task);
