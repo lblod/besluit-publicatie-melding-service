@@ -230,6 +230,7 @@ async function updateTask(uri, newStatusUri, numberOfRetries){
   `;
 
   await query(q);
+  return getTask(uri);
 }
 
 function getPublishedResourcesFromDelta(delta) {
