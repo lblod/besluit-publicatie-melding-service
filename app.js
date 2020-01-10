@@ -53,9 +53,9 @@ async function processPublishedResources(publishedResourceUris){
 async function handleTaskError(error, task){
   console.error(`Error for task ${task.subject}`);
   console.error(error);
-  await updateTask(task.subject, FAILED_STATUS, task.numberofRetries);
+  await updateTask(task.subject, FAILED_STATUS, task.numberofRetries + 1);
 
-  if(parseInt(task.numberOfRetries) >= MAX_ATTEMPTS){
+  if(task.numberOfRetries >= MAX_ATTEMPTS){
     await updateTask(task.uri, FAILED_STATUS, task.numberOfRetries);
     console.log(`Stopping retries for task ${task.subject})`);
   }
@@ -65,13 +65,13 @@ async function handleTaskError(error, task){
 async function scheduleRetryProcessing(task){
   console.log(`Tried processing ${task.subject} retried ${task.numberOfRetries}/${MAX_ATTEMPTS} already`);
 
-  const waitTime = calcTimeout(parseInt(task.numberOfRetries));
+  const waitTime = calcTimeout(task.numberOfRetries);
 
   console.log(`Expecting next retry for ${task.subject} in about ${waitTime/1000} seconds`);
   setTimeout(async () => {
     try {
       console.log(`Retry for task ${task.subject}`);
-      await updateTask(task.subject, PENDING_STATUS, parseInt(task.numberOfRetries) + 1);
+      await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
       await executeSubmitTask(task);
     }
     catch(error){
