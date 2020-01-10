@@ -39,6 +39,7 @@ async function processPublishedResources(publishedResourceUris){
     let task = await createTask(pr);
     try{
       await executeSubmitTask(task);
+      await updateTask(task.uri, SUCCESS_STATUS, task.numberOfRetries);
     }
     catch(error){
       handleTaskError(error, task);
