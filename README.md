@@ -13,7 +13,6 @@ For debugging:
 besluit-publicatie:
     image: lblod/besluit-publicatie-melding-service:z.y.x
     environment: # defaults params are shown here
-      CRON_FREQUENCY: '0 */5 * * * *' # As fallback in case issues with notifications
       KEY: 'api-key-as-provided' # (required)
       MAX_ATTEMPTS: '10'
       PUBLISHER_URI: '"http://data.lblod.info/vendors/gelinkt-notuleren'
