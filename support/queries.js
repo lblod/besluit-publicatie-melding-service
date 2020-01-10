@@ -36,7 +36,7 @@ async function createTask(publishedResource){
   `;
 
   await query(q);
-  return (await getTask(subject))[0];
+  return (await getTask(subject));
 }
 
 async function getPendingTasks(){
@@ -62,7 +62,7 @@ async function getPendingTasks(){
   `;
 
   let result = await query(q);
-  return  parseResult(result);
+  return parseResult(result);
 }
 
 async function getFailedTasksForRetry(maxAttempts){
@@ -116,7 +116,9 @@ async function getTask(subjectUri){
   `;
 
   let result = await query(q);
-  return  parseResult(result);
+  if(!result.results.bindings) return null;
+  let task = parseResult(result)[0];
+  return task;
 }
 
 async function getPublishedResourcesWithoutAssociatedTask(){
