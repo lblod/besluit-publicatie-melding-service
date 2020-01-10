@@ -9,6 +9,28 @@ const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-status
 const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/failure";
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
 
+async function getTaskForResource(publishedResource){
+  let q = `
+    PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
+    PREFIX nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
+
+     SELECT DISTINCT ?task {
+       GRAPH ?graph {
+         ?resource a sign:PublishedResource.
+         ?task nuao:involves ?resource.
+      }
+    }
+  `;
+
+  let result = await query(q);
+  debugger;
+  if(result.results.bindings){
+    return null;
+  }
+  result = parseResult(result);
+  return (await getTask(result[0].task));
+}
+
 async function createTask(publishedResource){
   let sUuid = uuid();
   let subject = `http://lblod.data.gift/besluit-publicatie-melding-events/${sUuid}`;
@@ -246,6 +268,7 @@ const parseResult = function( result ) {
 };
 
 export { createTask,
+         getTaskForResource,
          getPendingTasks,
          getFailedTasksForRetry,
          updateTask,
