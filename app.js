@@ -17,19 +17,6 @@ const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
 
 waitForDatabase(rescheduleTasksOnStart);
 
-//CronJob polls and is used as a fallback mechanism, in case of issues with delta flow.
-new CronJob(CRON_FREQUENCY, async function() {
-  console.log(`Service triggered by cron job at ${new Date().toISOString()}`);
-  try {
-    const publishedResources = await getPublishedResourcesWithoutAssociatedTask();
-    console.log(`Cronjob found ${publishedResources.length} resources.`);
-    processPublishedResources(publishedResources.map(pr => pr.resource));
-  } catch (err) {
-    console.log("We had a bonobo");
-    console.log(err);
-  }
-}, null, true);
-
 app.use( bodyParser.json( { type: function(req) { return /^application\/json/.test( req.get('content-type') ); } } ) );
 
 app.get('/', function( req, res ) {
