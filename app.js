@@ -2,6 +2,7 @@ import { app, errorHandler } from 'mu';
 import { PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS } from './support/queries' ;
 import { waitForDatabase } from './database-utils';
 import { getPendingTasks,
+         getTaskForResource,
          getFailedTasksForRetry,
          createTask,
          updateTask,
@@ -36,7 +37,9 @@ app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
   for(const pr of publishedResourceUris){
-    let task = await createTask(pr);
+    let task = await getTaskForResource(pr);
+    if(task) continue; //We assume this is picked up previously
+    task = await createTask(pr);
     try{
       await executeSubmitTask(task);
       await updateTask(task.uri, SUCCESS_STATUS, task.numberOfRetries);
