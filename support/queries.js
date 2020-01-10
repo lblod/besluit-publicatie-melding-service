@@ -65,6 +65,34 @@ async function getPendingTasks(){
   return  parseResult(result);
 }
 
+async function getTasksForRetry(maxAttempts){
+  let q = `
+    PREFIX    adms: <http://www.w3.org/ns/adms#>
+    PREFIX    mu: <http://mu.semte.ch/vocabularies/core/>
+    PREFIX    nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
+    PREFIX    task: <http://redpencil.data.gift/vocabularies/tasks/>
+    PREFIX    dct: <http://purl.org/dc/terms/>
+    PREFIX    ndo: <http://oscaf.sourceforge.net/ndo.html#>
+    SELECT DISTINCT ?subject ?uuid ?status ?created ?modified ?numberOfRetries ?involves WHERE{
+      GRAPH ${sparqlEscapeUri(DEFAULT_GRAPH)} {
+        VALUES ?status { ${sparqlEscapeUri(FAILED_STATUS)} }.
+        ?subject a   task:Task;
+                     mu:uuid ?uuid;
+                     adms:status ?status;
+                     task:numberOfRetries ?numberOfRetries;
+                     dct:created ?created;
+                     dct:modified ?modified;
+                     nuao:involves ?involves.
+
+       FILTER( ?numberOfRetries < ${sparqlEscapeInt(maxAttempts)} )
+      }
+    }
+  `;
+
+  let result = await query(q);
+  return  parseResult(result);
+}
+
 async function getTask(subjectUri){
   let q = `
     PREFIX    adms: <http://www.w3.org/ns/adms#>
@@ -212,6 +240,7 @@ const parseResult = function( result ) {
 
 export { createTask,
          getPendingTasks,
+         getTasksForRetry,
          updateTask,
          getTask,
          getPublishedResourcesFromDelta,

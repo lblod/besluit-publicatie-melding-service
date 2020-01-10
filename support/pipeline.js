@@ -51,7 +51,6 @@ async function submitResource(payload){
   };
 
   const response = await request(options);
-  console.log(response);
   return response;
 }
 
