@@ -235,7 +235,12 @@ const parseResult = function( result ) {
   const bindingKeys = result.head.vars;
   return result.results.bindings.map((row) => {
     const obj = {};
-    bindingKeys.forEach((key) => obj[key] = row[key]?row[key].value:undefined);
+    bindingKeys.forEach((key) => {
+      if(row[key].datatype == 'http://www.w3.org/2001/XMLSchema#integer' && row[key].value){
+        obj[key] = parseInt(row[key].value);
+      }
+      else obj[key] = row[key]?row[key].value:undefined;
+    });
     return obj;
   });
 };
