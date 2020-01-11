@@ -2,6 +2,7 @@ import { app, errorHandler } from 'mu';
 import { PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS } from './support/queries' ;
 import { waitForDatabase } from './database-utils';
 import { getPendingTasks,
+         requiresMelding,
          getTaskForResource,
          getFailedTasksForRetry,
          createTask,
@@ -37,12 +38,23 @@ app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
   for(const pr of publishedResourceUris){
+
+    if(!(await requiresMelding(pr))){
+      console.log(`No melding required for ${pr}`);
+      continue;
+    };
+
     let task = await getTaskForResource(pr);
-    if(task) continue; //We assume this is picked up previously
+    if(task){
+      console.log(`A task already exists for ${pr}, skipping`);
+      continue; //We assume this is picked up previously
+    }
+
     task = await createTask(pr);
+
     try{
       await executeSubmitTask(task);
-      await updateTask(task.uri, SUCCESS_STATUS, task.numberOfRetries);
+      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
     }
     catch(error){
       handleTaskError(error, task);
@@ -88,7 +100,7 @@ async function rescheduleTasksOnStart(){
     catch(error){
       //if rescheduling fails, we consider there is something really broken...
       console.log(`Fatal error for ${task.subject}`);
-      await updateTask(task.uri, FAILED_STATUS, task.numberOfRetries);
+      await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
     }
   }
 };

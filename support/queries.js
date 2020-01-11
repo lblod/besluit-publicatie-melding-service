@@ -16,15 +16,14 @@ async function getTaskForResource(publishedResource){
 
      SELECT DISTINCT ?task {
        GRAPH ?graph {
-         ?resource a sign:PublishedResource.
-         ?task nuao:involves ?resource.
+         ${sparqlEscapeUri(publishedResource)} a sign:PublishedResource.
+         ?task nuao:involves ${sparqlEscapeUri(publishedResource)}.
       }
     }
   `;
 
   let result = await query(q);
-  debugger;
-  if(result.results.bindings){
+  if(result.results.bindings.length == 0){
     return null;
   }
   result = parseResult(result);
@@ -112,7 +111,7 @@ async function getFailedTasksForRetry(maxAttempts){
   `;
 
   let result = await query(q);
-  return  parseResult(result);
+  return parseResult(result);
 }
 
 async function getTask(subjectUri){
@@ -138,9 +137,7 @@ async function getTask(subjectUri){
   `;
 
   let result = await query(q);
-  if(!result.results.bindings) return null;
-  let task = parseResult(result)[0];
-  return task;
+  return parseResult(result)[0];
 }
 
 async function getPublishedResourcesWithoutAssociatedTask(){
@@ -196,6 +193,27 @@ async function getExtractedResourceDetailsFromPublishedResource(resource){
   `;
   let res = await query(queryStr);
   return parseResult(res);
+}
+
+async function requiresMelding(resource){
+  let queryStr = `
+    PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
+
+     SELECT DISTINCT ?type WHERE{
+
+       GRAPH ?graph {
+         ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
+         ?extractedResource a ?type.
+       }
+       FILTER(
+         ?type IN ( ext:Notulen, ext:Agenda, ext:Besluitenlijst)
+       )
+    }
+  `;
+  let res = await query(queryStr);
+  res = parseResult(res);
+  return res.length > 0 ;
 }
 
 async function updateTask(uri, newStatusUri, numberOfRetries){
@@ -269,6 +287,7 @@ const parseResult = function( result ) {
 };
 
 export { createTask,
+         requiresMelding,
          getTaskForResource,
          getPendingTasks,
          getFailedTasksForRetry,
