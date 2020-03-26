@@ -1,5 +1,12 @@
 import { app, errorHandler } from 'mu';
-import { PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS } from './support/queries' ;
+import {
+  PENDING_STATUS,
+  FAILED_STATUS,
+  SUCCESS_STATUS,
+  PENDING_SUBMISSION_STATUS,
+  FAILED_SUBMISSION_STATUS,
+  SUCCESS_SUBMISSION_STATUS
+ } from './support/queries' ;
 import { waitForDatabase } from './database-utils';
 import { getPendingTasks,
          requiresMelding,
@@ -7,6 +14,7 @@ import { getPendingTasks,
          getFailedTasksForRetry,
          createTask,
          updateTask,
+         updatePublishedResourceStatus,
          getTask,
          getPublishedResourcesFromDelta,
          getPublishedResourcesWithoutAssociatedTask } from './support/queries';
@@ -55,6 +63,7 @@ async function processPublishedResources(publishedResourceUris){
     try{
       await executeSubmitTask(task);
       await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
     }
     catch(error){
       handleTaskError(error, task);
@@ -66,6 +75,8 @@ async function handleTaskError(error, task){
   console.error(`Error for task ${task.subject}`);
   console.error(error);
   task = await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries + 1);
+  await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+
 
   if(task.numberOfRetries >= MAX_ATTEMPTS){
     console.log(`Stopping retries for task ${task.subject})`);
@@ -83,6 +94,7 @@ async function scheduleRetryProcessing(task){
     try {
       console.log(`Retry for task ${task.subject}`);
       await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
       await executeSubmitTask(task);
     }
     catch(error){
@@ -101,6 +113,7 @@ async function rescheduleTasksOnStart(){
       //if rescheduling fails, we consider there is something really broken...
       console.log(`Fatal error for ${task.subject}`);
       await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
     }
   }
 };

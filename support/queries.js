@@ -8,6 +8,7 @@ const DEFAULT_GRAPH = (process.env || {}).DEFAULT_GRAPH || 'http://mu.semte.ch/g
 const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/ongoing";
 const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/failure";
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
+
 const BESLUIT_TYPES_MELDING = [
   '<https://data.vlaanderen.be/id/concept/BesluitType/67378dd0-5413-474b-8996-d992ef81637a>', // Reglementen en verordeningen
   '<https://data.vlaanderen.be/id/concept/BesluitType/0d1278af-b69e-4152-a418-ec5cfd1c7d0b>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in speciale beschermingszones
@@ -27,6 +28,10 @@ const BESLUIT_TYPES_MELDING = [
   '<https://data.vlaanderen.be/id/concept/BesluitType/efa4ec5a-b006-453f-985f-f986ebae11bc>', // Belastingreglement
   '<https://data.vlaanderen.be/id/concept/BesluitType/fb92601a-d189-4482-9922-ab0efc6bc935>'  // Gebruikersreglement
 ];
+
+const PENDING_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/ongoing";
+const FAILED_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/failure";
+const SUCCESS_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/success";
 
 async function getTaskForResource(publishedResource){
   let q = `
@@ -275,6 +280,38 @@ async function updateTask(uri, newStatusUri, numberOfRetries){
   return getTask(uri);
 }
 
+async function updatePublishedResourceStatus(uri, newStatusUri) {
+  let q = `
+    PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
+    PREFIX nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
+    PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+
+    DELETE {
+      GRAPH ?g {
+        ${sparqlEscapeUri(uri)} ext:submissionStatus ?submissionStatus .
+      }
+    } WHERE {
+      GRAPH ?g {
+        ${sparqlEscapeUri(uri)} a sign:PublishedResource ;
+          ext:submissionStatus ?submissionStatus .
+      }
+    }
+    ;
+    INSERT {
+      GRAPH ?h {
+        ${sparqlEscapeUri(uri)} ext:submissionStatus ${sparqlEscapeUri(newStatusUri)}.
+      }
+    } WHERE {
+      GRAPH ?g {
+        ${sparqlEscapeUri(uri)} a sign:PublishedResource .
+      }
+      BIND (?g as ?h)
+    }
+  `;
+
+  await query(q);
+}
+
 function getPublishedResourcesFromDelta(delta) {
   const inserts = flatten(delta.map(changeSet => changeSet.inserts));
   const publishedResourceUris = inserts.filter( triple => {
@@ -316,8 +353,10 @@ export { createTask,
          getPendingTasks,
          getFailedTasksForRetry,
          updateTask,
+         updatePublishedResourceStatus,
          getTask,
          getPublishedResourcesFromDelta,
          getExtractedResourceDetailsFromPublishedResource,
          getPublishedResourcesWithoutAssociatedTask,
-         PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS}
+         PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
+         PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }
