@@ -1,5 +1,5 @@
 import request from 'request-promise-native';
-import { getExtractedResourceDetailsFromPublishedResource } from './queries';
+import { getExtractedResourceDetailsFromPublishedResource, getUuid } from './queries';
 
 const PUBLISHER_URI = process.env.PUBLISHER_URI || "http://data.lblod.info/vendors/gelinkt-notuleren";
 const KEY = process.env.KEY;
@@ -22,7 +22,7 @@ async function executeSubmitTask(task){
 
   //Note: Probably, I should allow only one extracted resource from a publishedResource
   for(const prDetail of publishedResourcesDetail){
-    let payload = createPayloadToSubmit(prDetail.type,
+    let payload = await createPayloadToSubmit(prDetail.type,
                                         prDetail.extractedResource,
                                         prDetail.zittingId,
                                         prDetail.bestuurseenheid,
@@ -32,8 +32,14 @@ async function executeSubmitTask(task){
   }
 }
 
-function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel){
-  const href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`; //TODO: this is brittle
+async function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel) {
+  let href = null;
+  if (RESOURCE_TO_URL_TYPE_MAP[type] == 'uittreksels') {
+    const uittrekselUuid = await getUuid(extractedResource);
+    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}/${uittrekselUuid}`;
+  } else {
+    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`;
+  }
   return {
     href,
     organization: bestuurseenheid,

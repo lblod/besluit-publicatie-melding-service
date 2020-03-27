@@ -323,6 +323,25 @@ function getPublishedResourcesFromDelta(delta) {
   return uniq(publishedResourceUris);
 }
 
+async function getUuid(uri){
+  let queryStr = `
+       PREFIX  mu:  <http://mu.semte.ch/vocabularies/core/>
+       SELECT DISTINCT ?uuid {
+         GRAPH ?g {
+            ${sparqlEscapeUri(uri)} mu:uuid ?uuid.
+         }
+       }
+  `;
+
+  let uuid = parseResult(await query(queryStr))[0];
+  if (uuid) {
+    return uuid.uuid;
+  } else {
+    return null;
+  }
+
+};
+
 /*************************************************************
  * HELPERS
  *************************************************************/
@@ -358,5 +377,6 @@ export { createTask,
          getPublishedResourcesFromDelta,
          getExtractedResourceDetailsFromPublishedResource,
          getPublishedResourcesWithoutAssociatedTask,
+         getUuid,
          PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
          PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }
