@@ -225,23 +225,26 @@ async function requiresMelding(resource){
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-     SELECT DISTINCT ?documentType WHERE{
-       GRAPH ?g {
-         ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
-         ?extractedResource a ?documentType.
-         ?behandeling prov:generated ?besluit .
-         ?besluit rdf:type ?besluitType .
-       }
-       GRAPH ?h {
-         ${sparqlEscapeUri(resource)} ext:publishesBehandeling ?versionedBehandeling .
-         ?versionedBehandeling ext:behandeling ?behandeling .
-       }
-       FILTER( ?documentType IN ( ext:Notulen, ext:Uittreksel ) )
-       FILTER( ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
+    SELECT DISTINCT ?documentType WHERE{
+      GRAPH ?g {
+        ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
+        ?extractedResource a ?documentType.
+        ?behandeling prov:generated ?besluit .
+        ?besluit rdf:type ?besluitType .
+      }
+      OPTIONAL {
+        GRAPH ?h {
+          ${sparqlEscapeUri(resource)} ext:publishesBehandeling ?versionedBehandeling .
+          ?versionedBehandeling ext:behandeling ?behandeling .
+        }
+      }
+      FILTER( ?documentType IN ( ext:Notulen, ext:Uittreksel, ext:Besluitenlijst ) )
+      FILTER( ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
     }
   `;
   let res = await query(queryStr);
   res = parseResult(res);
+
   return res.length > 0 ;
 }
 
