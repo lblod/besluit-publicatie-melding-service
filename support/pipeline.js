@@ -1,5 +1,5 @@
 import request from 'request-promise-native';
-import { getExtractedResourceDetailsFromPublishedResource, getUuid } from './queries';
+import { getExtractedResourceDetailsFromPublishedResource, getUuid, getDecisionFromUittreksel } from './queries';
 
 const PUBLISHER_URI = process.env.PUBLISHER_URI || "http://data.lblod.info/vendors/gelinkt-notuleren";
 const KEY = process.env.KEY;
@@ -34,12 +34,18 @@ async function executeSubmitTask(task){
 
 async function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel) {
   let href = null;
+
   if (RESOURCE_TO_URL_TYPE_MAP[type] == 'uittreksels') {
+    /* Uittreksels need a specific treatment because of the way they are published on the publication app and
+      because they are not a decison type in themselves so we need to pass the decision contained in them as payload.
+    */
     const uittrekselUuid = await getUuid(extractedResource);
     href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}/${uittrekselUuid}`;
+    extractedResource = await getDecisionFromUittreksel(extractedResource);
   } else {
     href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`;
   }
+
   return {
     href,
     organization: bestuurseenheid,

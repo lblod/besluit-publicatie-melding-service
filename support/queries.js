@@ -342,8 +342,26 @@ async function getUuid(uri){
   } else {
     return null;
   }
-
 };
+
+async function getDecisionFromUittreksel(uri) {
+  let queryStr = `
+    PREFIX  mu:  <http://mu.semte.ch/vocabularies/core/>
+
+    SELECT DISTINCT ?decision {
+      GRAPH ?g {
+        ${sparqlEscapeUri(uri)} <http://mu.semte.ch/vocabularies/ext/uittrekselBvap> ?behandelingVanAgendapunt .
+        ?behandelingVanAgendapunt <http://www.w3.org/ns/prov#generated> ?decision .
+      }
+    }
+  `;
+  let decision = parseResult(await query(queryStr))[0];
+  if (decision) {
+    return decision.decision;
+  } else {
+    return null;
+  }
+}
 
 /*************************************************************
  * HELPERS
@@ -381,5 +399,6 @@ export { createTask,
          getExtractedResourceDetailsFromPublishedResource,
          getPublishedResourcesWithoutAssociatedTask,
          getUuid,
+         getDecisionFromUittreksel,
          PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
          PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }
