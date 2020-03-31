@@ -238,7 +238,7 @@ async function requiresMelding(resource){
           ?versionedBehandeling ext:behandeling ?behandeling .
         }
       }
-      FILTER( ?documentType IN ( ext:Notulen, ext:Uittreksel, ext:Besluitenlijst ) )
+      FILTER( ?documentType IN ( ext:Uittreksel, ext:Besluitenlijst ) )
       FILTER( ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
     }
   `;
