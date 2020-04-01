@@ -10,22 +10,60 @@ const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuse
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
 
 const BESLUIT_TYPES_MELDING = [
-  '<https://data.vlaanderen.be/id/concept/BesluitType/67378dd0-5413-474b-8996-d992ef81637a>', // Reglementen en verordeningen
   '<https://data.vlaanderen.be/id/concept/BesluitType/0d1278af-b69e-4152-a418-ec5cfd1c7d0b>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in speciale beschermingszones
+  '<https://data.vlaanderen.be/id/concept/BesluitType/1105564e-30c7-4371-a864-6b7329cdae6f>', // Oprichting IGS
   '<https://data.vlaanderen.be/id/concept/BesluitType/256bd04a-b74b-4f2a-8f5d-14dda4765af9>', // Tijdelijke politieverordening (op het wegverkeer)
   '<https://data.vlaanderen.be/id/concept/BesluitType/25deb453-ae3e-4d40-8027-36cdb48ab738>', // Deontologische Code
+  '<https://data.vlaanderen.be/id/concept/BesluitType/2f189152-1786-4b55-a3a9-d7f06de63f1c>', // Meerjarenplan(aanpassing) BBC2020
+  '<https://data.vlaanderen.be/id/concept/BesluitType/380674ee-0894-4c41-bcc1-9deaeb9d464c>', // Oprichting districtsbestuur
   '<https://data.vlaanderen.be/id/concept/BesluitType/3bba9f10-faff-49a6-acaa-85af7f2199a3>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in havengebied
+  '<https://data.vlaanderen.be/id/concept/BesluitType/3fcf7dba-2e5b-4955-a489-6dd8285c013b>', // Besluit over meerjarenplan(aanpassing) eredienstbestuur
+  '<https://data.vlaanderen.be/id/concept/BesluitType/40831a2c-771d-4b41-9720-0399998f1873>', // Budget
+  '<https://data.vlaanderen.be/id/concept/BesluitType/4350cdda-8291-4055-9026-5c7429357fce>', // Advies jaarrekening OCMW-vereniging
+  '<https://data.vlaanderen.be/id/concept/BesluitType/70ae4d36-de0c-425d-9dbe-3b6deef8343c>', // Besluit over budget(wijziging) OCMW-vereniging
   '<https://data.vlaanderen.be/id/concept/BesluitType/4673d472-8dbc-4cea-b3ab-f92df3807eb3>', // Personeelsreglement
   '<https://data.vlaanderen.be/id/concept/BesluitType/4d8f678a-6fa4-4d5f-a2a1-80974e43bf34>', // Aanvullend reglement op het wegverkeer enkel m.b.t. gemeentewegen (niet in havengebied of speciale beschermingszones)
+  '<https://data.vlaanderen.be/id/concept/BesluitType/5bedea99-905b-4bae-b0d2-e7755c72a5be>', // Besluit over budget AGB
+  '<https://data.vlaanderen.be/id/concept/BesluitType/f276bc3b-2d79-4c55-81b8-092e05619676>', // Besluit over meerjarenplan(aanpassing) AGB
   '<https://data.vlaanderen.be/id/concept/BesluitType/5ee63f84-2fa0-4758-8820-99dca2bdce7c>', // Delegatiereglement
+  '<https://data.vlaanderen.be/id/concept/BesluitType/67378dd0-5413-474b-8996-d992ef81637a>', // Reglementen en verordeningen
+  '<https://data.vlaanderen.be/id/concept/BesluitType/6af621e2-c807-479e-a6f2-2d64d8339491>', // Goedkeuringstoezicht Voeren
+  '<https://data.vlaanderen.be/id/concept/BesluitType/f1d16307-164c-4278-87b9-1d3b1d968f67>', // Statutenwijziging vereniging of vennootschap voor maatschappelijk welzijn
+  '<https://data.vlaanderen.be/id/concept/BesluitType/51982214-0d8b-4cd9-87cf-c46570cd1ed3>', // Advies jaarrekening vereniging of vennootschap voor maatschappelijk welzijn
+  '<https://data.vlaanderen.be/id/concept/BesluitType/79414af4-4f57-4ca3-aaa4-f8f1e015e71c>', // Advies bij jaarrekening eredienstbestuur
   '<https://data.vlaanderen.be/id/concept/BesluitType/7d95fd2e-3cc9-4a4c-a58e-0fbc408c2f9b>', // Aanvullend reglement op het wegverkeer m.b.t. één of meerdere gewestwegen
+  '<https://data.vlaanderen.be/id/concept/BesluitType/82d0696e-1225-4684-826a-923b2453f5e3>', // Besluit over budget APB
+  '<https://data.vlaanderen.be/id/concept/BesluitType/c258f7b8-0bcc-481c-923d-b58b15248422>', // Besluit over meerjarenplan(aanpassing) APB
   '<https://data.vlaanderen.be/id/concept/BesluitType/84121221-4217-40e3-ada2-cd1379b168e1>', // Andere
+  '<https://data.vlaanderen.be/id/concept/BesluitType/849c66c2-ba33-4ac1-a693-be48d8ac7bc7>', // Besluit meerjarenplan(aanpassing) AGB
+  '<https://data.vlaanderen.be/id/concept/BesluitType/8bdc614a-d2f2-44c0-8cb1-447b1017d312>', // Advies bij jaarrekening APB
+  '<https://data.vlaanderen.be/id/concept/BesluitType/a0a709a7-ac07-4457-8d40-de4aea9b1432>', // Advies bij jaarrekening AGB
   '<https://data.vlaanderen.be/id/concept/BesluitType/a8486fa3-6375-494d-aa48-e34289b87d5b>', // Huishoudelijk reglement
+  '<https://data.vlaanderen.be/id/concept/BesluitType/b25faa84-3ab5-47ae-98c0-1b389c77b827>', // Schorsing beslissing eredienstbesturen
+  '<https://data.vlaanderen.be/id/concept/BesluitType/b69c9f18-967c-4feb-90a8-8eea3c8ce46b>', // Oprichting ocmw-vereniging
   '<https://data.vlaanderen.be/id/concept/BesluitType/ba5922c9-cfad-4b2e-b203-36479219ba56>', // Retributiereglement
+  '<https://data.vlaanderen.be/id/concept/BesluitType/bd0b0c42-ba5e-4acc-b644-95f6aad904c7>', // Oprichting autonoom bedrijf
+  '<https://data.vlaanderen.be/id/concept/BesluitType/c417f3da-a3bd-47c5-84bf-29007323a362>', // Besluit over meerjarenplan APB
+  '<https://data.vlaanderen.be/id/concept/BesluitType/c945b531-4742-43fe-af55-b13da6ecc6fe>', // Wijziging autonoom bedrijf
   '<https://data.vlaanderen.be/id/concept/BesluitType/d7060f97-c417-474c-abc6-ef006cb61f41>', // Subsidie, premie, erkenning
+  '<https://data.vlaanderen.be/id/concept/BesluitType/d9c3d177-6dc6-4775-8c6a-1055a9cbdcc6>', // Wijziging ocmw-vereniging
+  '<https://data.vlaanderen.be/id/concept/BesluitType/dbc58656-b0a5-4e43-8e9e-701acb75f9b0>', // Statutenwijziging IGS
+  '<https://data.vlaanderen.be/id/concept/BesluitType/df261490-cc74-4f80-b783-41c35e720b46>', // Besluit over budget(wijziging) eredienstbestuur
+  '<https://data.vlaanderen.be/id/concept/BesluitType/e27ef237-29de-49b8-be22-4ee2ab2d4e5b>', // Toetreding rechtspersoon
+  '<https://data.vlaanderen.be/id/concept/BesluitType/e44c535d-4339-4d15-bdbf-d4be6046de2c>', // Jaarrekening
+  '<https://data.vlaanderen.be/id/concept/BesluitType/5226e23d-617d-48b9-9c00-3d679ae88fec>', // Statutenwijziging autonoom bedrijf
+  '<https://data.vlaanderen.be/id/concept/BesluitType/f4ba730e-3f12-4c2f-81cf-31922b6da166>', // Oprichting rechtspersoon IGS
+  '<https://data.vlaanderen.be/id/concept/BesluitType/9a02d21f-fdc4-455e-8892-c2ae1d33759a>', // Statutenwijziging rechtspersoon IGS
+  '<https://data.vlaanderen.be/id/concept/BesluitType/6199a44b-0d6c-407c-833a-73abb104efce>', // Oprichting of toetreding vereniging of vennootschap voor maatschappelijk welzijn
   '<https://data.vlaanderen.be/id/concept/BesluitType/e8aee49e-8762-4db2-acfe-2d5dd3c37619>', // Reglement Onderwijs
   '<https://data.vlaanderen.be/id/concept/BesluitType/e8afe7c5-9640-4db8-8f74-3f023bec3241>', // Politiereglement
   '<https://data.vlaanderen.be/id/concept/BesluitType/efa4ec5a-b006-453f-985f-f986ebae11bc>', // Belastingreglement
+  '<https://data.vlaanderen.be/id/concept/BesluitType/b2d0734d-13d0-44b4-9af8-1722933c5288>', // Aanvullende belasting of opcentiem
+  '<https://data.vlaanderen.be/id/concept/BesluitType/4c22ef0a-f808-41dd-9c9f-2aff17fd851f>', // Contantbelasting
+  '<https://data.vlaanderen.be/id/concept/BesluitType/8597e056-b96d-4213-ad4c-37338f2aaf35>', // Kohierbelasting
+  '<https://data.vlaanderen.be/id/concept/BesluitType/f56c645d-b8e1-4066-813d-e213f5bc529f>', // Meerjarenplan(aanpassing)
+  '<https://data.vlaanderen.be/id/concept/BesluitType/f8c070bd-96e4-43a1-8c6e-532bcd771251>', // Oprichting of deelname EVA
+  '<https://data.vlaanderen.be/id/concept/BesluitType/fb21d14b-734b-48f4-bd4e-888163fd08e8>', // Rechtspositieregeling (RPR)
   '<https://data.vlaanderen.be/id/concept/BesluitType/fb92601a-d189-4482-9922-ab0efc6bc935>'  // Gebruikersreglement
 ];
 
