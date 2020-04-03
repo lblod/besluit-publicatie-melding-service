@@ -280,21 +280,30 @@ async function requiresMelding(resource){
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-    SELECT DISTINCT ?documentType WHERE{
-      GRAPH ?g {
-        ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
-        ?extractedResource a ?documentType.
-        ?behandeling prov:generated ?besluit .
-        ?besluit rdf:type ?besluitType .
+    SELECT DISTINCT ?documentType WHERE {
+      {
+        GRAPH ?g {
+          ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
+          ?extractedResource a ?documentType .
+        }
+
+        FILTER ( ?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
       }
-      OPTIONAL {
+      UNION
+      {
+        GRAPH ?g {
+          ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
+          ?extractedResource a ?documentType .
+          ?behandeling prov:generated ?besluit .
+          ?besluit rdf:type ?besluitType .
+        }
         GRAPH ?h {
           ${sparqlEscapeUri(resource)} ext:publishesBehandeling ?versionedBehandeling .
           ?versionedBehandeling ext:behandeling ?behandeling .
         }
+
+        FILTER ( ?documentType = <http://mu.semte.ch/vocabularies/ext/Uittreksel> && ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
       }
-      FILTER( ?documentType IN ( ext:Uittreksel, ext:Besluitenlijst ) )
-      FILTER( ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
     }
   `;
   let res = await query(queryStr);
