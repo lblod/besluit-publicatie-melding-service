@@ -294,14 +294,10 @@ async function requiresMelding(resource){
         GRAPH ?g {
           ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
           ?extractedResource a ?documentType .
+          ?extractedResrouce <http://mu.semte.ch/vocabularies/ext/uittrekselBvap> ?behandling.
           ?behandeling prov:generated ?besluit .
           ?besluit rdf:type ?besluitType .
         }
-        GRAPH ?h {
-          ${sparqlEscapeUri(resource)} ext:publishesBehandeling ?versionedBehandeling .
-          ?versionedBehandeling ext:behandeling ?behandeling .
-        }
-
         FILTER ( ?documentType = <http://mu.semte.ch/vocabularies/ext/Uittreksel> && ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
       }
     }
