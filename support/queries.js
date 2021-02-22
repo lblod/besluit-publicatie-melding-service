@@ -42,7 +42,6 @@ const BESLUIT_TYPES_MELDING = [
   '<https://data.vlaanderen.be/id/concept/BesluitType/c258f7b8-0bcc-481c-923d-b58b15248422>', // Besluit over meerjarenplan(aanpassing) APB
   '<https://data.vlaanderen.be/id/concept/BesluitType/c76a04b4-cf41-44e1-b597-94c0b3628357>', // Besluit over vaststelling van meerjarenplan APB
   '<https://data.vlaanderen.be/id/concept/BesluitType/31d500ce-bd0a-4ff3-9337-48194f22f37e>', // Besluit over vaststelling van meerjarenplanaanpassing APB
-  '<https://data.vlaanderen.be/id/concept/BesluitType/84121221-4217-40e3-ada2-cd1379b168e1>', // Andere
   '<https://data.vlaanderen.be/id/concept/BesluitType/849c66c2-ba33-4ac1-a693-be48d8ac7bc7>', // Besluit meerjarenplan(aanpassing) AGB
   '<https://data.vlaanderen.be/id/concept/BesluitType/8bdc614a-d2f2-44c0-8cb1-447b1017d312>', // Advies bij jaarrekening APB
   '<https://data.vlaanderen.be/id/concept/BesluitType/9f12dc58-18ba-4a1f-9e7a-cf73d0b4f025>', // Besluit budget AGB
