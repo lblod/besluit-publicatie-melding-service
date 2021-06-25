@@ -30,7 +30,7 @@ besluit-publicatie:
 
 #### KEY (required)
 
-Provided api key for submitting to the `SUBMISSION_ENDPOINT`.
+Provided api key for submitting to the [`SUBMISSION_ENDPOINT`][header-subend].
 
 #### SUBMISSION_ENDPOINT (required)
 
@@ -40,7 +40,7 @@ This endpoint must comply with the [submission-api][submission-api] specificatio
 #### SOURCE_HOST (required)
 
 Base url where the published resource can be publicly viewed. Used for generating
-hrefs for use in the frontend. This should point to an instance of 
+urls which will be submitted to the [`SUBMISSION_ENDPOINT`][header-subend]. This should point to an instance of
 [the publication stack][publication]
 
 #### PUBLISHER_URI (default = `'http://data.lblod.info/vendors/gelinkt-notuleren'`)
@@ -63,7 +63,7 @@ Currently not used.
 
 #### MAX_ATTEMPTS (default = `'10'`)
 
-Amount of times this service will retry to submit a notification to `SUBMISSION_ENDPOINT` upon failure.
+Amount of times this service will retry to submit a notification to [`SUBMISSION_ENDPOINT`][header-subend] upon failure.
 
 #### PING_DB_INTERVAL (default = `'2'`)
 
@@ -93,6 +93,7 @@ export default [
 Once a valid resource is provided, a [task:Task][task] is created and processed. It retries in case of failure.
 There is also a fallback, in case of issues with notifications
 
+[header-subend]: #submission_endpoint-required
 [submission-api]: https://lblod.github.io/pages-vendors/#/docs/submission-api
 [publishedResource]: http://mu.semte.ch/vocabularies/ext/signing/PublishedResource
 [automatic-submission-service]: https://github.com/lblod/automatic-submission-service
