@@ -21,6 +21,9 @@ import {
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
+import AsyncLock from 'async-lock'
+
+const lock = new AsyncLock();
 
 const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);

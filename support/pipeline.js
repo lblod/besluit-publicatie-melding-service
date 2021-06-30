@@ -1,12 +1,10 @@
 import request from 'request-promise-native';
 import { getExtractedResourceDetailsFromPublishedResource, getUuid, getDecisionFromUittreksel } from './queries';
-import AsyncLock from 'async-lock'
 
 const PUBLISHER_URI = process.env.PUBLISHER_URI || "http://data.lblod.info/vendors/gelinkt-notuleren";
 const KEY = process.env.KEY;
 const SOURCE_HOST = process.env.SOURCE_HOST;
 const ENDPOINT = process.env.SUBMISSION_ENDPOINT;
-const lock = new AsyncLock();
 
 if(!SOURCE_HOST) throw 'Please provide SOURCE_HOST';
 if(!ENDPOINT) throw 'Please provide ENDPOINT';
