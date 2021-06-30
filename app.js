@@ -25,7 +25,7 @@ import { CronJob } from 'cron';
 const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
 
-waitForDatabase(rescheduleUnproccessedTasks);
+waitForDatabase(rescheduleUnproccessedTasks.bind(this, true));
 
 app.use( bodyParser.json( { type: function(req) { return /^application\/json/.test( req.get('content-type') ); } } ) );
 
@@ -44,28 +44,30 @@ app.post('/submit-publication', async function( req, res ){
 app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
-  for(const pr of publishedResourceUris){
+  lock.acquire('taskProcessing', async () => {
+    for(const pr of publishedResourceUris){
 
-    if(!(await requiresMelding(pr))){
-      console.log(`No melding required for ${pr}`);
-      continue;
-    };
+      if(!(await requiresMelding(pr))){
+        console.log(`No melding required for ${pr}`);
+        continue;
+      };
 
-    let task = await getTaskForResource(pr);
-    if(task){
-      console.log(`A task already exists for ${pr}, skipping`);
-      continue; //We assume this is picked up previously
-    }
+      let task = await getTaskForResource(pr);
+      if(task){
+        console.log(`A task already exists for ${pr}, skipping`);
+        continue; //We assume this is picked up previously
+      }
 
-    task = await createTask(pr);
+      task = await createTask(pr);
 
-    try{
-      await executeSubmitTask(task);
-      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
-    }
-    catch(error){
-      handleTaskError(error, task);
+      try{
+        await executeSubmitTask(task);
+        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      }
+      catch(error){
+        handleTaskError(error, task);
+      }
     }
   }
 }
@@ -102,19 +104,27 @@ async function scheduleRetryProcessing(task){
   }, waitTime);
 }
 
-async function rescheduleUnproccessedTasks(){
-  const tasks = [ ...(await getPendingTasks()), ...(await getFailedTasksForRetry(MAX_ATTEMPTS)) ];
-  for(let task of tasks){
-    try {
-      await scheduleRetryProcessing(task);
+async function rescheduleUnproccessedTasks(firstTime){
+  lock.acquire('taskProcessing', async () => {
+    const tasks = [ ...(await getPendingTasks()) ];
+    if(firstTime) {
+      const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
+      tasks.push(...failedTasks);
     }
-    catch(error){
-      //if rescheduling fails, we consider there is something really broken...
-      console.log(`Fatal error for ${task.subject}`);
-      await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+    for(let task of tasks){
+      try {
+        await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
+        await executeSubmitTask(task);
+      }
+      catch(error){
+        //if rescheduling fails, we consider there is something really broken...
+        console.log(`Fatal error for ${task.subject}`);
+        await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+      }
     }
-  }
+  })
 };
 
 function calcTimeout(x){
@@ -124,7 +134,7 @@ function calcTimeout(x){
 
 new CronJob(CRON_FREQUENCY, async function() {
   try {
-    await rescheduleUnproccessedTasks()
+    await rescheduleUnproccessedTasks(false)
   } catch (err) {
     console.log("Error with the cronJob: ");
     console.log(err);

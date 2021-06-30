@@ -20,20 +20,18 @@ const RESOURCE_TO_URL_TYPE_MAP = {
 };
 
 async function executeSubmitTask(task){
-  lock.acquire('executeSubmitTask', async () => {
-    const publishedResourcesDetail = await getExtractedResourceDetailsFromPublishedResource(task.involves);
+  const publishedResourcesDetail = await getExtractedResourceDetailsFromPublishedResource(task.involves);
 
-    //Note: Probably, I should allow only one extracted resource from a publishedResource
-    for(const prDetail of publishedResourcesDetail){
-      let payload = await createPayloadToSubmit(prDetail.type,
-                                          prDetail.extractedResource,
-                                          prDetail.zittingId,
-                                          prDetail.bestuurseenheid,
-                                          prDetail.bestuurseenheidLabel,
-                                          prDetail.classificatieLabel);
-      await submitResource(payload);
-    }
-  })
+  //Note: Probably, I should allow only one extracted resource from a publishedResource
+  for(const prDetail of publishedResourcesDetail){
+    let payload = await createPayloadToSubmit(prDetail.type,
+                                        prDetail.extractedResource,
+                                        prDetail.zittingId,
+                                        prDetail.bestuurseenheid,
+                                        prDetail.bestuurseenheidLabel,
+                                        prDetail.classificatieLabel);
+    await submitResource(payload);
+  }
 }
 
 async function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel) {
