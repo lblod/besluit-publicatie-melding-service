@@ -47,7 +47,7 @@ app.post('/submit-publication', async function( req, res ){
 app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
-  lock.acquire('taskProcessing', async () => {
+  await lock.acquire('taskProcessing', async () => {
     for(const pr of publishedResourceUris){
 
       if(!(await requiresMelding(pr))){
@@ -108,7 +108,7 @@ async function scheduleRetryProcessing(task){
 }
 
 async function rescheduleUnproccessedTasks(firstTime){
-  lock.acquire('taskProcessing', async () => {
+  await lock.acquire('taskProcessing', async () => {
     const tasks = [ ...(await getPendingTasks()) ];
     if(firstTime) {
       const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
