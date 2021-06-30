@@ -6,27 +6,26 @@ import {
   PENDING_SUBMISSION_STATUS,
   FAILED_SUBMISSION_STATUS,
   SUCCESS_SUBMISSION_STATUS
- } from './support/queries' ;
+} from './support/queries' ;
 import { waitForDatabase } from './database-utils';
-import { getPendingTasks,
-         requiresMelding,
-         getTaskForResource,
-         getFailedTasksForRetry,
-         createTask,
-         updateTask,
-         updatePublishedResourceStatus,
-         getTask,
-         getPublishedResourcesFromDelta,
-         getPublishedResourcesWithoutAssociatedTask } from './support/queries';
+import { 
+  getPendingTasks,
+  requiresMelding,
+  getTaskForResource,
+  getFailedTasksForRetry,
+  createTask,
+  updateTask,
+  updatePublishedResourceStatus,
+  getPublishedResourcesFromDelta 
+} from './support/queries';
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
 
-const PENDING_TIMEOUT = process.env.PENDING_TIMEOUT_HOURS || 3;
-const CRON_FREQUENCY = process.env.CACHING_CRON_PATTERN || '0 */5 * * * *';
+const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
 
-waitForDatabase(rescheduleTasksOnStart);
+waitForDatabase(rescheduleUnproccessedTasks);
 
 app.use( bodyParser.json( { type: function(req) { return /^application\/json/.test( req.get('content-type') ); } } ) );
 
@@ -103,7 +102,7 @@ async function scheduleRetryProcessing(task){
   }, waitTime);
 }
 
-async function rescheduleTasksOnStart(){
+async function rescheduleUnproccessedTasks(){
   const tasks = [ ...(await getPendingTasks()), ...(await getFailedTasksForRetry(MAX_ATTEMPTS)) ];
   for(let task of tasks){
     try {
@@ -122,3 +121,12 @@ function calcTimeout(x){
   //expected to be milliseconds
   return Math.round(Math.exp(0.3 * x + 10)); //I dunno I just gave it a shot
 }
+
+new CronJob(CRON_FREQUENCY, async function() {
+  try {
+    await rescheduleUnproccessedTasks()
+  } catch (err) {
+    console.log("Error with the cronJob: ");
+    console.log(err);
+  }
+}, null, true);
