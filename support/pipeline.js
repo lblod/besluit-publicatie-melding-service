@@ -1,10 +1,12 @@
 import request from 'request-promise-native';
 import { getExtractedResourceDetailsFromPublishedResource, getUuid, getDecisionFromUittreksel } from './queries';
+import AsyncLock from 'async-lock'
 
 const PUBLISHER_URI = process.env.PUBLISHER_URI || "http://data.lblod.info/vendors/gelinkt-notuleren";
 const KEY = process.env.KEY;
 const SOURCE_HOST = process.env.SOURCE_HOST;
 const ENDPOINT = process.env.SUBMISSION_ENDPOINT;
+const lock = new AsyncLock();
 
 if(!SOURCE_HOST) throw 'Please provide SOURCE_HOST';
 if(!ENDPOINT) throw 'Please provide ENDPOINT';
@@ -18,18 +20,20 @@ const RESOURCE_TO_URL_TYPE_MAP = {
 };
 
 async function executeSubmitTask(task){
-  const publishedResourcesDetail = await getExtractedResourceDetailsFromPublishedResource(task.involves);
+  lock.acquire('executeSubmitTask', async () => {
+    const publishedResourcesDetail = await getExtractedResourceDetailsFromPublishedResource(task.involves);
 
-  //Note: Probably, I should allow only one extracted resource from a publishedResource
-  for(const prDetail of publishedResourcesDetail){
-    let payload = await createPayloadToSubmit(prDetail.type,
-                                        prDetail.extractedResource,
-                                        prDetail.zittingId,
-                                        prDetail.bestuurseenheid,
-                                        prDetail.bestuurseenheidLabel,
-                                        prDetail.classificatieLabel);
-    await submitResource(payload);
-  }
+    //Note: Probably, I should allow only one extracted resource from a publishedResource
+    for(const prDetail of publishedResourcesDetail){
+      let payload = await createPayloadToSubmit(prDetail.type,
+                                          prDetail.extractedResource,
+                                          prDetail.zittingId,
+                                          prDetail.bestuurseenheid,
+                                          prDetail.bestuurseenheidLabel,
+                                          prDetail.classificatieLabel);
+      await submitResource(payload);
+    }
+  })
 }
 
 async function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel) {
