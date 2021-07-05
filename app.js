@@ -16,7 +16,8 @@ import {
   createTask,
   updateTask,
   updatePublishedResourceStatus,
-  getPublishedResourcesFromDelta 
+  getPublishedResourcesFromDelta ,
+  getUnproccessedTasks
 } from './support/queries';
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
@@ -72,7 +73,7 @@ async function processPublishedResources(publishedResourceUris){
         handleTaskError(error, task);
       }
     }
-  }
+  })
 }
 
 async function handleTaskError(error, task){
@@ -130,6 +131,30 @@ async function rescheduleUnproccessedTasks(firstTime){
   })
 };
 
+async function proccessUnasignedResources() {
+  await lock.acquire('taskProcessing', async () => {
+    const resources = await getUnproccessedTasks();
+
+    for(let resource of resources) {
+      const resourceUri = resource.resource;
+      if(!(await requiresMelding(resourceUri))){
+        console.log(`No melding required for ${resourceUri}`);
+        continue;
+      };
+      const task = await createTask(resourceUri);
+
+      try{
+        await executeSubmitTask(task);
+        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      }
+      catch(error){
+        handleTaskError(error, task);
+      }
+    }
+  })
+}
+
 function calcTimeout(x){
   //expected to be milliseconds
   return Math.round(Math.exp(0.3 * x + 10)); //I dunno I just gave it a shot
@@ -138,6 +163,7 @@ function calcTimeout(x){
 new CronJob(CRON_FREQUENCY, async function() {
   try {
     await rescheduleUnproccessedTasks(false)
+    await proccessUnasignedResources();
   } catch (err) {
     console.log("Error with the cronJob: ");
     console.log(err);

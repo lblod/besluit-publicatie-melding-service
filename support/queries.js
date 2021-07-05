@@ -423,6 +423,7 @@ async function getDecisionFromUittreksel(uri) {
   }
 }
 
+
 /*************************************************************
  * HELPERS
  *************************************************************/
@@ -447,6 +448,22 @@ const parseResult = function( result ) {
   });
 };
 
+async function getUnproccessedTasks() {
+  let queryString = `
+    PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
+    PREFIX nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
+    select distinct * where {
+      ?resource a sign:PublishedResource.
+      FILTER NOT EXISTS {
+        ?task nuao:involves ?resource.
+      }
+    }
+  `
+  const result = await query(queryString);
+  const parsedResult = parseResult(result);
+  return parsedResult;
+}
+
 export { createTask,
          requiresMelding,
          getTaskForResource,
@@ -460,5 +477,6 @@ export { createTask,
          getPublishedResourcesWithoutAssociatedTask,
          getUuid,
          getDecisionFromUittreksel,
+         getUnproccessedTasks,
          PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
          PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }
