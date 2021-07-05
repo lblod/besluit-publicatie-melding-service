@@ -458,7 +458,7 @@ async function getUnproccessedTasks() {
         ?task nuao:involves ?resource.
       }
     }
-  `
+  `;
   const result = await query(queryString);
   const parsedResult = parseResult(result);
   return parsedResult;

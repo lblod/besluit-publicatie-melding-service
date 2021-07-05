@@ -128,7 +128,7 @@ async function rescheduleUnproccessedTasks(firstTime){
         await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
       }
     }
-  })
+  });
 };
 
 async function proccessUnasignedResources() {
@@ -152,7 +152,7 @@ async function proccessUnasignedResources() {
         handleTaskError(error, task);
       }
     }
-  })
+  });
 }
 
 function calcTimeout(x){
@@ -162,7 +162,7 @@ function calcTimeout(x){
 
 new CronJob(CRON_FREQUENCY, async function() {
   try {
-    await rescheduleUnproccessedTasks(false)
+    await rescheduleUnproccessedTasks(false);
     await proccessUnasignedResources();
   } catch (err) {
     console.log("Error with the cronJob: ");
