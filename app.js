@@ -48,7 +48,7 @@ app.post('/submit-publication', async function( req, res ){
 app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
-  await mutex.acquire()
+  const release = await mutex.acquire();
   for(const pr of publishedResourceUris){
 
     if(!(await requiresMelding(pr))){
@@ -73,6 +73,7 @@ async function processPublishedResources(publishedResourceUris){
       handleTaskError(error, task);
     }
   }
+  release();
 }
 
 async function handleTaskError(error, task){
@@ -108,7 +109,7 @@ async function scheduleRetryProcessing(task){
 }
 
 async function rescheduleUnproccessedTasks(firstTime){
-  await mutex.acquire()
+  const release = await mutex.acquire();
   const tasks = [ ...(await getPendingTasks()) ];
   if(firstTime) {
     const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
@@ -127,10 +128,11 @@ async function rescheduleUnproccessedTasks(firstTime){
       await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
     }
   }
+  release();
 };
 
 async function proccessResourcesWithoutTask() {
-  await mutex.acquire()
+  const release = await mutex.acquire();
   const resources = await getResourcesWithoutTask();
 
   for(let resource of resources) {
@@ -150,6 +152,7 @@ async function proccessResourcesWithoutTask() {
       handleTaskError(error, task);
     }
   }
+  release();
 }
 
 function calcTimeout(x){
