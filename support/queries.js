@@ -448,7 +448,7 @@ const parseResult = function( result ) {
   });
 };
 
-async function getUnproccessedTasks() {
+async function getResourcesWithoutTask() {
   let queryString = `
     PREFIX sign: <http://mu.semte.ch/vocabularies/ext/signing/>
     PREFIX nuao: <http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#>
@@ -477,6 +477,6 @@ export { createTask,
          getPublishedResourcesWithoutAssociatedTask,
          getUuid,
          getDecisionFromUittreksel,
-         getUnproccessedTasks,
+         getResourcesWithoutTask,
          PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
          PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }

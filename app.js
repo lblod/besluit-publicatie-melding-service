@@ -17,7 +17,7 @@ import {
   updateTask,
   updatePublishedResourceStatus,
   getPublishedResourcesFromDelta ,
-  getUnproccessedTasks
+  getResourcesWithoutTask
 } from './support/queries';
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
@@ -131,9 +131,9 @@ async function rescheduleUnproccessedTasks(firstTime){
   });
 };
 
-async function proccessUnasignedResources() {
+async function proccessResourcesWithoutTask() {
   await lock.acquire('taskProcessing', async () => {
-    const resources = await getUnproccessedTasks();
+    const resources = await getResourcesWithoutTask();
 
     for(let resource of resources) {
       const resourceUri = resource.resource;
@@ -163,7 +163,7 @@ function calcTimeout(x){
 new CronJob(CRON_FREQUENCY, async function() {
   try {
     await rescheduleUnproccessedTasks(false);
-    await proccessUnasignedResources();
+    await proccessResourcesWithoutTask();
   } catch (err) {
     console.log("Error with the cronJob: ");
     console.log(err);
