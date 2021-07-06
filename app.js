@@ -22,9 +22,9 @@ import {
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
-import AsyncLock from 'async-lock'
+import { Mutex } from 'async-mutex'
 
-const lock = new AsyncLock();
+const mutex = new Mutex();
 
 const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
@@ -48,32 +48,31 @@ app.post('/submit-publication', async function( req, res ){
 app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
-  await lock.acquire('taskProcessing', async () => {
-    for(const pr of publishedResourceUris){
+  await mutex.acquire()
+  for(const pr of publishedResourceUris){
 
-      if(!(await requiresMelding(pr))){
-        console.log(`No melding required for ${pr}`);
-        continue;
-      };
+    if(!(await requiresMelding(pr))){
+      console.log(`No melding required for ${pr}`);
+      continue;
+    };
 
-      let task = await getTaskForResource(pr);
-      if(task){
-        console.log(`A task already exists for ${pr}, skipping`);
-        continue; //We assume this is picked up previously
-      }
-
-      task = await createTask(pr);
-
-      try{
-        await executeSubmitTask(task);
-        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
-      }
-      catch(error){
-        handleTaskError(error, task);
-      }
+    let task = await getTaskForResource(pr);
+    if(task){
+      console.log(`A task already exists for ${pr}, skipping`);
+      continue; //We assume this is picked up previously
     }
-  })
+
+    task = await createTask(pr);
+
+    try{
+      await executeSubmitTask(task);
+      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+    }
+    catch(error){
+      handleTaskError(error, task);
+    }
+  }
 }
 
 async function handleTaskError(error, task){
@@ -109,50 +108,48 @@ async function scheduleRetryProcessing(task){
 }
 
 async function rescheduleUnproccessedTasks(firstTime){
-  await lock.acquire('taskProcessing', async () => {
-    const tasks = [ ...(await getPendingTasks()) ];
-    if(firstTime) {
-      const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
-      tasks.push(...failedTasks);
+  await mutex.acquire()
+  const tasks = [ ...(await getPendingTasks()) ];
+  if(firstTime) {
+    const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
+    tasks.push(...failedTasks);
+  }
+  for(let task of tasks){
+    try {
+      await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
+      await executeSubmitTask(task);
     }
-    for(let task of tasks){
-      try {
-        await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
-        await executeSubmitTask(task);
-      }
-      catch(error){
-        //if rescheduling fails, we consider there is something really broken...
-        console.log(`Fatal error for ${task.subject}`);
-        await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
-      }
+    catch(error){
+      //if rescheduling fails, we consider there is something really broken...
+      console.log(`Fatal error for ${task.subject}`);
+      await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
     }
-  });
+  }
 };
 
 async function proccessResourcesWithoutTask() {
-  await lock.acquire('taskProcessing', async () => {
-    const resources = await getResourcesWithoutTask();
+  await mutex.acquire()
+  const resources = await getResourcesWithoutTask();
 
-    for(let resource of resources) {
-      const resourceUri = resource.resource;
-      if(!(await requiresMelding(resourceUri))){
-        console.log(`No melding required for ${resourceUri}`);
-        continue;
-      };
-      const task = await createTask(resourceUri);
+  for(let resource of resources) {
+    const resourceUri = resource.resource;
+    if(!(await requiresMelding(resourceUri))){
+      console.log(`No melding required for ${resourceUri}`);
+      continue;
+    };
+    const task = await createTask(resourceUri);
 
-      try{
-        await executeSubmitTask(task);
-        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
-      }
-      catch(error){
-        handleTaskError(error, task);
-      }
+    try{
+      await executeSubmitTask(task);
+      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
     }
-  });
+    catch(error){
+      handleTaskError(error, task);
+    }
+  }
 }
 
 function calcTimeout(x){
