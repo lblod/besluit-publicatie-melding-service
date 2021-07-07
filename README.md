@@ -24,6 +24,7 @@ besluit-publicatie:
       PENDING_TIMEOUT_HOURS: '3'
       MAX_ATTEMPTS: '10' 
       PING_DB_INTERVAL: '2'
+      RESCHEDULE_CRON_PATTERN: '0 0 * * *'
     links:
       - database:database
 ```
@@ -69,6 +70,9 @@ Amount of times this service will retry to submit a notification to [`SUBMISSION
 
 Time in seconds between pings to the database service while waiting for it
 to start. Only relevant for startup, no effect once the stack is running.
+
+### RESCHEDULE_CRON_PATTERN (default = `'0 0 * * *'`)
+Cron pattern when the function in charge of rescheduling pending tasks and resources without tasks will run, it runs every day at 00:00 by default
 
 ## Example delta notifier config
 ```

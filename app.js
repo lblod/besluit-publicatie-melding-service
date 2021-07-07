@@ -6,27 +6,30 @@ import {
   PENDING_SUBMISSION_STATUS,
   FAILED_SUBMISSION_STATUS,
   SUCCESS_SUBMISSION_STATUS
- } from './support/queries' ;
+} from './support/queries' ;
 import { waitForDatabase } from './database-utils';
-import { getPendingTasks,
-         requiresMelding,
-         getTaskForResource,
-         getFailedTasksForRetry,
-         createTask,
-         updateTask,
-         updatePublishedResourceStatus,
-         getTask,
-         getPublishedResourcesFromDelta,
-         getPublishedResourcesWithoutAssociatedTask } from './support/queries';
+import { 
+  getPendingTasks,
+  requiresMelding,
+  getTaskForResource,
+  getFailedTasksForRetry,
+  createTask,
+  updateTask,
+  updatePublishedResourceStatus,
+  getPublishedResourcesFromDelta ,
+  getResourcesWithoutTask
+} from './support/queries';
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
+import { Mutex } from 'async-mutex'
 
-const PENDING_TIMEOUT = process.env.PENDING_TIMEOUT_HOURS || 3;
-const CRON_FREQUENCY = process.env.CACHING_CRON_PATTERN || '0 */5 * * * *';
+const mutex = new Mutex();
+
+const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
 
-waitForDatabase(rescheduleTasksOnStart);
+waitForDatabase(rescheduleUnproccessedTasks.bind(this, true));
 
 app.use( bodyParser.json( { type: function(req) { return /^application\/json/.test( req.get('content-type') ); } } ) );
 
@@ -45,6 +48,7 @@ app.post('/submit-publication', async function( req, res ){
 app.use(errorHandler);
 
 async function processPublishedResources(publishedResourceUris){
+  const release = await mutex.acquire();
   for(const pr of publishedResourceUris){
 
     if(!(await requiresMelding(pr))){
@@ -69,6 +73,7 @@ async function processPublishedResources(publishedResourceUris){
       handleTaskError(error, task);
     }
   }
+  release();
 }
 
 async function handleTaskError(error, task){
@@ -103,11 +108,18 @@ async function scheduleRetryProcessing(task){
   }, waitTime);
 }
 
-async function rescheduleTasksOnStart(){
-  const tasks = [ ...(await getPendingTasks()), ...(await getFailedTasksForRetry(MAX_ATTEMPTS)) ];
+async function rescheduleUnproccessedTasks(firstTime){
+  const release = await mutex.acquire();
+  const tasks = [ ...(await getPendingTasks()) ];
+  if(firstTime) {
+    const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
+    tasks.push(...failedTasks);
+  }
   for(let task of tasks){
     try {
-      await scheduleRetryProcessing(task);
+      await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
+      await executeSubmitTask(task);
     }
     catch(error){
       //if rescheduling fails, we consider there is something really broken...
@@ -116,9 +128,44 @@ async function rescheduleTasksOnStart(){
       await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
     }
   }
+  release();
 };
+
+async function proccessResourcesWithoutTask() {
+  const release = await mutex.acquire();
+  const resources = await getResourcesWithoutTask();
+
+  for(let resource of resources) {
+    const resourceUri = resource.resource;
+    if(!(await requiresMelding(resourceUri))){
+      console.log(`No melding required for ${resourceUri}`);
+      continue;
+    };
+    const task = await createTask(resourceUri);
+
+    try{
+      await executeSubmitTask(task);
+      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+    }
+    catch(error){
+      handleTaskError(error, task);
+    }
+  }
+  release();
+}
 
 function calcTimeout(x){
   //expected to be milliseconds
   return Math.round(Math.exp(0.3 * x + 10)); //I dunno I just gave it a shot
 }
+
+new CronJob(CRON_FREQUENCY, async function() {
+  try {
+    await rescheduleUnproccessedTasks(false);
+    await proccessResourcesWithoutTask();
+  } catch (err) {
+    console.log("Error with the cronJob: ");
+    console.log(err);
+  }
+}, null, true);
