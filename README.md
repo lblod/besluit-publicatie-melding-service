@@ -19,6 +19,7 @@ besluit-publicatie:
       SUBMISSION_ENDPOINT: 'http://automatic-submission-service/melding' # The target endpoint to submit to (required)
       SOURCE_HOST: 'http://the.public.host.where.publication.is.availible' # (required)
       DEFAULT_GRAPH: 'http://mu.semte.ch/graphs/public'
+      RESCHEDULE_CRON_PATTERN: '0 0 * * *' #Cron pattern for the rescheduling of pending tasks and resources without task
     links:
       - database:database
 ```
