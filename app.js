@@ -22,7 +22,7 @@ import {
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
-import { Mutex } from 'async-mutex'
+import { Mutex } from 'async-mutex';
 
 const mutex = new Mutex();
 
@@ -65,9 +65,14 @@ async function processPublishedResources(publishedResourceUris){
     task = await createTask(pr);
 
     try{
-      await executeSubmitTask(task);
-      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      const response = await executeSubmitTask(task);
+      if (response.ok) {
+        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      }
+      else {
+        handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+      }
     }
     catch(error){
       handleTaskError(error, task);
