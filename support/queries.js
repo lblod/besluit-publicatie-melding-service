@@ -8,7 +8,13 @@ const DEFAULT_GRAPH = (process.env || {}).DEFAULT_GRAPH || 'http://mu.semte.ch/g
 const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/ongoing";
 const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/failure";
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
+const ADMIN_BODIES_W_DECISION_LIST_THAT_MUST_BE_SUBMITTED = [
+  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000005>', // gemeenteraad
+  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000c>', // provincieraad
+  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000007>', // Raad voor Maatschappelijk Welzijn
+  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000a>' // Districtsraad
 
+];
 const BESLUIT_TYPES_MELDING = [
   '<https://data.vlaanderen.be/id/concept/BesluitType/0d1278af-b69e-4152-a418-ec5cfd1c7d0b>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in speciale beschermingszones
   '<https://data.vlaanderen.be/id/concept/BesluitType/1105564e-30c7-4371-a864-6b7329cdae6f>', // Oprichting IGS
@@ -275,19 +281,27 @@ async function getExtractedResourceDetailsFromPublishedResource(resource){
 }
 
 async function requiresMelding(resource){
+  // decision list published by a gemeenteraad
+  // an extract with a decision of certain type
+
   let queryStr = `
     PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX besluit: <http://data.vlaanderen.be/ns/besluit#>
 
     SELECT DISTINCT ?documentType WHERE {
       {
+        ?bestuursorgaanInTijd <http://data.vlaanderen.be/ns/mandaat#isTijdspecialisatieVan> ?bestuursorgaan.
+        ?bestuursorgaan besluit:classificatie ?bestuursorgaanClassificatie.
+        FILTER ( ?bestuursorgaanClassificatie IN (${ADMIN_BODIES_W_DECISION_LIST_THAT_MUST_BE_SUBMITTED.join(',')}))
         GRAPH ?g {
-          ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
-          ?extractedResource a ?documentType .
+          ?extractedZitting prov:wasDerivedFrom  ${sparqlEscapeUri(resource)}; a besluit:Zitting.
+          ?extractedResource prov:wasDerivedFrom  ${sparqlEscapeUri(resource)}; a ?documentType.
+          FILTER(?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
+          ?extractedZitting besluit:isGehoudenDoor ?bestuursorgaanInTijd.
         }
-
-        FILTER ( ?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
+        FILTER(?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
       }
       UNION
       {
@@ -439,7 +453,7 @@ const parseResult = function( result ) {
   return result.results.bindings.map((row) => {
     const obj = {};
     bindingKeys.forEach((key) => {
-      if(row[key].datatype == 'http://www.w3.org/2001/XMLSchema#integer' && row[key].value){
+      if(row[key] && row[key].datatype == 'http://www.w3.org/2001/XMLSchema#integer' && row[key].value){
         obj[key] = parseInt(row[key].value);
       }
       else obj[key] = row[key]?row[key].value:undefined;
