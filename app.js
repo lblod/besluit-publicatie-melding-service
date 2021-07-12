@@ -22,7 +22,7 @@ import {
 import { executeSubmitTask } from './support/pipeline';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
-import { Mutex } from 'async-mutex'
+import { Mutex } from 'async-mutex';
 
 const mutex = new Mutex();
 
