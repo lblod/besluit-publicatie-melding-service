@@ -65,9 +65,14 @@ async function processPublishedResources(publishedResourceUris){
     task = await createTask(pr);
 
     try{
-      await executeSubmitTask(task);
-      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      const response = await executeSubmitTask(task);
+      if (response.ok) {
+        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      }
+      else {
+        handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+      }
     }
     catch(error){
       handleTaskError(error, task);

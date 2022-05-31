@@ -1,4 +1,4 @@
-import request from 'request-promise-native';
+import fetch from 'node-fetch';
 import { getExtractedResourceDetailsFromPublishedResource, getUuid, getDecisionFromUittreksel } from './queries';
 
 const PUBLISHER_URI = process.env.PUBLISHER_URI || "http://data.lblod.info/vendors/gelinkt-notuleren";
@@ -28,10 +28,33 @@ async function executeSubmitTask(task){
                                         prDetail.bestuurseenheid,
                                         prDetail.bestuurseenheidLabel,
                                         prDetail.classificatieLabel);
-    await submitResource(payload);
+    const validToSubmit = await hrefReturnsOk(payload.href);
+    if (validToSubmit) {
+      return await submitResource(payload);
+    }
+    else {
+      throw `preflight check failed: ${payload.href} is not returing a 200 response`;
+    }
   }
 }
 
+async function hrefReturnsOk(url) {
+  try {
+    const result = await fetch(url);
+    if (result.status === 200) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+  catch(e) {
+    console.log("error", e);
+    return false;
+  }
+
+
+}
 async function createPayloadToSubmit(type, extractedResource, zittingId, bestuurseenheid, bestuurseenheidLabel, classificatieLabel) {
   let href = null;
 
@@ -57,12 +80,11 @@ async function createPayloadToSubmit(type, extractedResource, zittingId, bestuur
 async function submitResource(payload){
   const options = {
     method: 'POST',
-    uri: ENDPOINT,
-    body: payload,
-    json: true
+    body:    JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' }
   };
 
-  const response = await request(options);
+  const response = await fetch(ENDPOINT, options);
   return response;
 }
 
