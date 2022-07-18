@@ -9,58 +9,78 @@ const DEFAULT_GRAPH = (process.env || {}).DEFAULT_GRAPH || 'http://mu.semte.ch/g
 const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/ongoing";
 const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/failure";
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
-const ADMIN_BODIES_W_DECISION_LIST_THAT_MUST_BE_SUBMITTED = [
-  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000005>', // gemeenteraad
-  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000c>', // provincieraad
-  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000007>', // Raad voor Maatschappelijk Welzijn
-  '<http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000a>' // Districtsraad
-
-];
-const BESLUIT_TYPES_MELDING = [
-  '<https://data.vlaanderen.be/id/concept/BesluitType/0d1278af-b69e-4152-a418-ec5cfd1c7d0b>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in speciale beschermingszones
-  '<https://data.vlaanderen.be/id/concept/BesluitType/1105564e-30c7-4371-a864-6b7329cdae6f>', // Oprichting IGS
-  '<https://data.vlaanderen.be/id/concept/BesluitType/256bd04a-b74b-4f2a-8f5d-14dda4765af9>', // Tijdelijke politieverordening (op het wegverkeer)
-  '<https://data.vlaanderen.be/id/concept/BesluitType/25deb453-ae3e-4d40-8027-36cdb48ab738>', // Deontologische Code
-  '<https://data.vlaanderen.be/id/concept/BesluitType/2f189152-1786-4b55-a3a9-d7f06de63f1c>', // Meerjarenplan(aanpassing) BBC2020
-  '<https://data.vlaanderen.be/id/concept/BesluitType/380674ee-0894-4c41-bcc1-9deaeb9d464c>', // Oprichting districtsbestuur
-  '<https://data.vlaanderen.be/id/concept/BesluitType/3bba9f10-faff-49a6-acaa-85af7f2199a3>', // Aanvullend reglement op het wegverkeer m.b.t. gemeentewegen in havengebied
-  '<https://data.vlaanderen.be/id/concept/BesluitType/3fcf7dba-2e5b-4955-a489-6dd8285c013b>', // Besluit over meerjarenplan(aanpassing) eredienstbestuur
-  '<https://data.vlaanderen.be/id/concept/BesluitType/4350cdda-8291-4055-9026-5c7429357fce>', // Advies jaarrekening OCMW-vereniging
-  '<https://data.vlaanderen.be/id/concept/BesluitType/4673d472-8dbc-4cea-b3ab-f92df3807eb3>', // Personeelsreglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/4d8f678a-6fa4-4d5f-a2a1-80974e43bf34>', // Aanvullend reglement op het wegverkeer enkel m.b.t. gemeentewegen (niet in havengebied of speciale beschermingszones)
-  '<https://data.vlaanderen.be/id/concept/BesluitType/5ee63f84-2fa0-4758-8820-99dca2bdce7c>', // Delegatiereglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/67378dd0-5413-474b-8996-d992ef81637a>', // Reglementen en verordeningen
-  '<https://data.vlaanderen.be/id/concept/BesluitType/6af621e2-c807-479e-a6f2-2d64d8339491>', // Goedkeuringstoezicht Voeren
-  '<https://data.vlaanderen.be/id/concept/BesluitType/79414af4-4f57-4ca3-aaa4-f8f1e015e71c>', // Advies bij jaarrekening eredienstbestuur
-  '<https://data.vlaanderen.be/id/concept/BesluitType/7d95fd2e-3cc9-4a4c-a58e-0fbc408c2f9b>', // Aanvullend reglement op het wegverkeer m.b.t. één of meerdere gewestwegen
-  '<https://data.vlaanderen.be/id/concept/BesluitType/84121221-4217-40e3-ada2-cd1379b168e1>', // Andere
-  '<https://data.vlaanderen.be/id/concept/BesluitType/849c66c2-ba33-4ac1-a693-be48d8ac7bc7>', // Besluit meerjarenplan(aanpassing) AGB
-  '<https://data.vlaanderen.be/id/concept/BesluitType/8bdc614a-d2f2-44c0-8cb1-447b1017d312>', // Advies bij jaarrekening APB
-  '<https://data.vlaanderen.be/id/concept/BesluitType/a0a709a7-ac07-4457-8d40-de4aea9b1432>', // Advies bij jaarrekening AGB
-  '<https://data.vlaanderen.be/id/concept/BesluitType/a8486fa3-6375-494d-aa48-e34289b87d5b>', // Huishoudelijk reglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/b69c9f18-967c-4feb-90a8-8eea3c8ce46b>', // Oprichting ocmw-vereniging
-  '<https://data.vlaanderen.be/id/concept/BesluitType/ba5922c9-cfad-4b2e-b203-36479219ba56>', // Retributiereglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/bd0b0c42-ba5e-4acc-b644-95f6aad904c7>', // Oprichting autonoom bedrijf
-  '<https://data.vlaanderen.be/id/concept/BesluitType/c417f3da-a3bd-47c5-84bf-29007323a362>', // Besluit over meerjarenplan APB
-  '<https://data.vlaanderen.be/id/concept/BesluitType/c945b531-4742-43fe-af55-b13da6ecc6fe>', // Wijziging autonoom bedrijf
-  '<https://data.vlaanderen.be/id/concept/BesluitType/d7060f97-c417-474c-abc6-ef006cb61f41>', // Subsidie, premie, erkenning
-  '<https://data.vlaanderen.be/id/concept/BesluitType/d9c3d177-6dc6-4775-8c6a-1055a9cbdcc6>', // Wijziging ocmw-vereniging
-  '<https://data.vlaanderen.be/id/concept/BesluitType/dbc58656-b0a5-4e43-8e9e-701acb75f9b0>', // Statutenwijziging IGS
-  '<https://data.vlaanderen.be/id/concept/BesluitType/df261490-cc74-4f80-b783-41c35e720b46>', // Besluit over budget(wijziging) eredienstbestuur
-  '<https://data.vlaanderen.be/id/concept/BesluitType/e27ef237-29de-49b8-be22-4ee2ab2d4e5b>', // Toetreding rechtspersoon
-  '<https://data.vlaanderen.be/id/concept/BesluitType/e44c535d-4339-4d15-bdbf-d4be6046de2c>', // Jaarrekening
-  '<https://data.vlaanderen.be/id/concept/BesluitType/e8aee49e-8762-4db2-acfe-2d5dd3c37619>', // Reglement Onderwijs
-  '<https://data.vlaanderen.be/id/concept/BesluitType/e8afe7c5-9640-4db8-8f74-3f023bec3241>', // Politiereglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/efa4ec5a-b006-453f-985f-f986ebae11bc>', // Belastingreglement
-  '<https://data.vlaanderen.be/id/concept/BesluitType/f56c645d-b8e1-4066-813d-e213f5bc529f>', // Meerjarenplan(aanpassing)
-  '<https://data.vlaanderen.be/id/concept/BesluitType/f8c070bd-96e4-43a1-8c6e-532bcd771251>', // Oprichting of deelname EVA
-  '<https://data.vlaanderen.be/id/concept/BesluitType/fb21d14b-734b-48f4-bd4e-888163fd08e8>', // Rechtspositieregeling (RPR)
-  '<https://data.vlaanderen.be/id/concept/BesluitType/fb92601a-d189-4482-9922-ab0efc6bc935>'   // Gebruikersreglement
-];
-
 const PENDING_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/ongoing";
 const FAILED_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/failure";
 const SUCCESS_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/success";
+
+const BESLUIT_TYPES_ENDPOINT = (process.env || {}).BESLUIT_TYPES_ENDPOINT || 'https://centrale-vindplaats.lblod.info/sparql';
+const BESTUURSORGANEN_NEED_PUBLISHING = [
+  'http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000005', // gemeenteraad
+  'http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000c', // provincieraad
+  'http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e000007', // Raad voor Maatschappelijk Welzijn
+  'http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/5ab0e9b8a3b2ca7c5e00000a', // Districtsraad
+
+];
+const DOCUMENT_TYPE_ALIASSES = (new Map())
+  .set('https://data.vlaanderen.be/id/concept/BesluitDocumentType/3fa67785-ffdc-4b30-8880-2b99d97b4dee', ['http://mu.semte.ch/vocabularies/ext/Besluitenlijst'])
+  .set('https://data.vlaanderen.be/id/concept/BesluitDocumentType/9d5bfaca-bbf2-49dd-a830-769f91a6377b', ['http://mu.semte.ch/vocabularies/ext/Uittreksel'])
+  .set('https://data.vlaanderen.be/id/concept/BesluitDocumentType/13fefad6-a9d6-4025-83b5-e4cbee3a8965', ['http://mu.semte.ch/vocabularies/ext/Agenda'])
+  .set('https://data.vlaanderen.be/id/concept/BesluitDocumentType/8e791b27-7600-4577-b24e-c7c29e0eb773', ['http://mu.semte.ch/vocabularies/ext/Notulen']);
+let REPORTING_DATA_BESLUIT_TYPES = [];
+let REPORTING_DATA_BESLUIT_DOCUMENT_TYPES = [];
+
+async function refreshReportingData() {
+  console.log('REPORTING DATA REFRESH');
+  const makeQuery = (type) => `
+    PREFIX conceptscheme: <https://data.vlaanderen.be/id/conceptscheme/>
+    PREFIX   borgaancode: <http://data.vlaanderen.be/id/concept/BestuursorgaanClassificatieCode/>
+    PREFIX   BesluitType: <https://data.vlaanderen.be/id/concept/BesluitType/>
+    PREFIX          skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX       besluit: <http://lblod.data.gift/vocabularies/besluit/>
+    PREFIX           sch: <http://schema.org/>
+    PREFIX          rule: <http://lblod.data.gift/vocabularies/notification/>
+
+    SELECT ?subject ?bestuurseenheidclassificatiecode ?obligationToReport ?validFrom ?validThrough WHERE {
+      ?subject skos:inScheme conceptscheme:${type} ;
+               besluit:notificationRule ?rule .
+      ?rule besluit:decidableBy ?bestuurseenheidclassificatiecode ;
+            besluit:obligationToReport ?obligationToReport .
+      OPTIONAL { ?rule sch:validFrom ?validFrom . }
+      OPTIONAL { ?rule sch:validThrough ?validThrough . }
+    }
+  `;
+
+  //BesluitTypes
+  const besluitTypesParams = new URLSearchParams();
+  besluitTypesParams.append('query', makeQuery('BesluitType'));
+  const besluitTypesResponse = await fetch(BESLUIT_TYPES_ENDPOINT, {
+    method: 'POST',
+    body: besluitTypesParams,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/sparql-results+json,application/json',
+    },
+  });
+  const besluitTypesResults = await besluitTypesResponse.json();
+  
+  //BesluitDocumentTypes
+  const besluitDocumentTypesParams = new URLSearchParams();
+  besluitDocumentTypesParams.append('query', makeQuery('BesluitDocumentType'));
+  const besluitDocumentTypesResponse = await fetch(BESLUIT_TYPES_ENDPOINT, {
+    method: 'POST',
+    body: besluitDocumentTypesParams,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/sparql-results+json,application/json',
+    },
+  });
+  const besluitDocumentTypesResults = await besluitDocumentTypesResponse.json();
+
+  //Save results in global variables
+  REPORTING_DATA_BESLUIT_TYPES = parseResult(besluitTypesResults);
+  //Document types need aliasses for legacy type information
+  REPORTING_DATA_BESLUIT_DOCUMENT_TYPES = addAliasses(parseResult(besluitDocumentTypesResults), 'subject', DOCUMENT_TYPE_ALIASSES);
+}
 
 async function getTaskForResource(publishedResource){
   let q = `
@@ -248,46 +268,94 @@ async function getExtractedResourceDetailsFromPublishedResource(resource){
   return parseResult(res);
 }
 
-async function requiresMelding(resource){
-  // decision list published by a gemeenteraad
-  // an extract with a decision of certain type
-
-  let queryStr = `
-    PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
-    PREFIX prov: <http://www.w3.org/ns/prov#>
+async function requiresMelding(resource) {
+  //Get some information about the published resource
+  //TODO: change the publicationDate from startedAtTime to the real publicationDate
+  const informationQuery = `
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
+    PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
     PREFIX besluit: <http://data.vlaanderen.be/ns/besluit#>
+    PREFIX mandaat: <http://data.vlaanderen.be/ns/mandaat#>
 
-    SELECT DISTINCT ?documentType WHERE {
-      {
-        ?bestuursorgaanInTijd <http://data.vlaanderen.be/ns/mandaat#isTijdspecialisatieVan> ?bestuursorgaan.
-        ?bestuursorgaan besluit:classificatie ?bestuursorgaanClassificatie.
-        FILTER ( ?bestuursorgaanClassificatie IN (${ADMIN_BODIES_W_DECISION_LIST_THAT_MUST_BE_SUBMITTED.join(',')}))
-        GRAPH ?g {
-          ?extractedZitting prov:wasDerivedFrom  ${sparqlEscapeUri(resource)}; a besluit:Zitting.
-          ?extractedResource prov:wasDerivedFrom  ${sparqlEscapeUri(resource)}; a ?documentType.
-          FILTER(?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
-          ?extractedZitting besluit:isGehoudenDoor ?bestuursorgaanInTijd.
-        }
-        FILTER(?documentType = <http://mu.semte.ch/vocabularies/ext/Besluitenlijst> )
+    SELECT ?documentType ?besluitType ?bestuursorgaanclassificatiecode ?bestuurseenheidclassificatiecode ?publicationDate WHERE {
+      ?zitting rdf:type besluit:Zitting ;
+               prov:wasDerivedFrom ${sparqlEscapeUri(resource)} ;
+               besluit:isGehoudenDoor ?bestuursorgaan .
+      ?bestuursorgaan mandaat:isTijdspecialisatieVan ?tijdsspecialisatie .
+      ?tijdsspecialisatie besluit:bestuurt / besluit:classificatie ?bestuurseenheidclassificatiecode .
+      ?tijdsspecialisatie besluit:classificatie ?bestuursorgaanclassificatiecode .
+      ?resource prov:wasDerivedFrom ${sparqlEscapeUri(resource)} ;
+                rdf:type ?documentType .
+      FILTER (!sameTerm(?zitting, ?resource))
+      OPTIONAL {
+        ?zitting prov:startedAtTime ?publicationDate .
       }
-      UNION
-      {
-        GRAPH ?g {
-          ?extractedResource prov:wasDerivedFrom ${sparqlEscapeUri(resource)}.
-          ?extractedResource a ?documentType .
-          ?extractedResrouce <http://mu.semte.ch/vocabularies/ext/uittrekselBvap> ?behandling.
-          ?behandeling prov:generated ?besluit .
-          ?besluit rdf:type ?besluitType .
-        }
-        FILTER ( ?documentType = <http://mu.semte.ch/vocabularies/ext/Uittreksel> && ?besluitType IN ( ${BESLUIT_TYPES_MELDING.join(', ')} ) )
+      OPTIONAL {
+        ?resource rdf:type ext:Uittreksel ;
+                  ext:uittrekselBvap ?behandelingVanAgendapunt .
+        ?behandelingVanAgendapunt prov:generated ?besluit .
+        ?besluit rdf:type ?besluitType .
+        FILTER (STRSTARTS(STR(?besluitType), "https://data.vlaanderen.be/id/concept/BesluitType/"))
       }
     }
   `;
-  let res = await query(queryStr);
-  res = parseResult(res);
+  const results = await query(informationQuery);
+  const informationObject = parseResult(results)[0];
+  console.log('RESULTS:', results);
+  console.log('INFORMATION ABOUT PUBLISHED RESOURCE', informationObject);
 
-  return res.length > 0 ;
+  //Make sure that if no date was found, the date of this moment is taken (should only be minutes after the real publication)
+  informationObject.publicationDate = informationObject.publicationDate || new Date();
+
+  //Check if document type needs reporting
+  const documentNeedsNotification = REPORTING_DATA_BESLUIT_DOCUMENT_TYPES
+    .some((type) => {
+      console.log('URI TEST:', type.subject, type.subjectAliasses, informationObject.documentType);
+      if (type.subject != informationObject.documentType && !type.subjectAliasses.find((alias) => alias == informationObject.documentType)) return false;
+      console.log('CODE TEST:', type.bestuurseenheidclassificatiecode, informationObject.bestuurseenheidclassificatiecode);
+      if (type.bestuurseenheidclassificatiecode != informationObject.bestuurseenheidclassificatiecode) return false;
+      console.log('DATE TEST:', type.validFrom, type.validThrough, informationObject.publicationDate);
+      //No date range exists, this rule is invalid
+      if (!(type.validFrom || type.validThrough))
+        return false;
+      //If rule start is after publication date, this is not a valid rule for the published resource
+      if (type.validFrom && type.validFrom > informationObject.publicationDate)
+        return false;
+      //If rule end is before or on the publication date, this is also not a valid rule
+      if (type.validThrough && type.validThrough <= informationObject.publicationDate)
+        return false;
+      return type.obligationToReport;
+    }) &&
+    !!(BESTUURSORGANEN_NEED_PUBLISHING.find((orgaancode) => {
+      console.log('ORGAAN TEST:', informationObject.bestuursorgaanclassificatiecode, orgaancode);
+      return orgaancode == informationObject.bestuursorgaanclassificatiecode
+    }));
+  console.log('DOCUMENT NEEDS MELDING:', documentNeedsNotification);
+  if (documentNeedsNotification) return true;
+
+  //If document does not need reporting, check if this is about a beluitType that needs reporting
+  if (informationObject.besluitType) {
+    console.log('TESTING IF BESLUIT NEEDS MELDING');
+    const besluitNeedsNotification = REPORTING_DATA_BESLUIT_TYPES
+      .some((type) => {
+        if (type.subject != informationObject.besluitType) return false;
+        if (type.bestuurseenheidclassificatiecode != informationObject.bestuurseenheidclassificatiecode) return false;
+        if (!(type.validFrom || type.validThrough))
+          return false;
+        if (type.validFrom && type.validFrom > informationObject.publicationDate)
+          return false;
+        if (type.validThrough && type.validThrough <= informationObject.publicationDate)
+          return false;
+        return type.obligationToReport;
+      });
+    console.log('BESLUIT NEEDS MELDING:', besluitNeedsNotification);
+    return besluitNeedsNotification;
+  }
+  else {
+    console.log('NOT A DOCUMENT, NOR BESLUIT THAT NEEDS MELDING');
+    return false;
+  }
 }
 
 async function updateTask(uri, newStatusUri, numberOfRetries){
@@ -416,19 +484,40 @@ async function getDecisionFromUittreksel(uri) {
  * @method parseResult
  * @return {Array}
  */
-const parseResult = function( result ) {
+function parseResult (result) {
   const bindingKeys = result.head.vars;
   return result.results.bindings.map((row) => {
     const obj = {};
     bindingKeys.forEach((key) => {
-      if(row[key] && row[key].datatype == 'http://www.w3.org/2001/XMLSchema#integer' && row[key].value){
-        obj[key] = parseInt(row[key].value);
+      if (row[key] && row[key].datatype) {
+        switch (row[key].datatype) {
+          case 'http://www.w3.org/2001/XMLSchema#integer':
+            obj[key] = parseInt(row[key].value);
+            break;
+          case 'http://www.w3.org/2001/XMLSchema#date':
+          case 'http://www.w3.org/2001/XMLSchema#dateTime':
+            obj[key] = new Date(row[key].value);
+            break;
+          case 'http://www.w3.org/2001/XMLSchema#boolean':
+            obj[key] = !!(row[key].value == '1' || row[key].value == 'true');
+            break;
+          default:
+            obj[key] = row[key].value;
+            break;
+        }
       }
-      else obj[key] = row[key]?row[key].value:undefined;
+      else obj[key] = row[key] ? row[key].value : undefined;
     });
     return obj;
   });
-};
+}
+
+function addAliasses(objects, property, aliasmap) {
+  return objects.map((object) => {
+    object[`${property}Aliasses`] = aliasmap.get(object[property]) || [];
+    return object;
+  });
+}
 
 async function getResourcesWithoutTask() {
   let queryString = `
@@ -446,7 +535,8 @@ async function getResourcesWithoutTask() {
   return parsedResult;
 }
 
-export { createTask,
+export { refreshReportingData,
+         createTask,
          requiresMelding,
          getTaskForResource,
          getPendingTasks,
