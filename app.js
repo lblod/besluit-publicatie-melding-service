@@ -6,8 +6,8 @@ import {
   PENDING_SUBMISSION_STATUS,
   FAILED_SUBMISSION_STATUS,
   SUCCESS_SUBMISSION_STATUS
-} from './support/queries' ;
-import { waitForDatabase } from './database-utils';
+} from './support/queries.js' ;
+import { waitForDatabase } from './database-utils.js';
 import { 
   getPendingTasks,
   requiresMelding,
@@ -17,9 +17,10 @@ import {
   updateTask,
   updatePublishedResourceStatus,
   getPublishedResourcesFromDelta ,
-  getResourcesWithoutTask
-} from './support/queries';
-import { executeSubmitTask } from './support/pipeline';
+  getResourcesWithoutTask,
+  refreshReportingData
+} from './support/queries.js';
+import { executeSubmitTask } from './support/pipeline.js';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
 import { Mutex } from 'async-mutex';

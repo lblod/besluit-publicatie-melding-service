@@ -3,6 +3,7 @@ import {uuid, sparqlEscapeUri, sparqlEscapeString, sparqlEscapeInt, sparqlEscape
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 import flatten from 'lodash.flatten';
 import uniq from 'lodash.uniq';
+import fetch from 'node-fetch';
 
 const DEFAULT_GRAPH = (process.env || {}).DEFAULT_GRAPH || 'http://mu.semte.ch/graphs/public';
 const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/ongoing";
