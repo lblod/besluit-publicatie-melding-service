@@ -2,6 +2,7 @@
   "name": "besluit-publicatie-melding-service",
   "version": "0.5.1",
   "description": "mu-semtech service to notify automatic melding service when new publication",
+  "type": "module",
   "main": "app.js",
   "dependencies": {
     "@lblod/marawa": "0.6.0",
@@ -12,9 +13,8 @@
     "jsdom": "^11.6.2",
     "lodash.flatten": "^4.4.0",
     "lodash.uniq": "^4.5.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.8"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

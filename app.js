@@ -6,8 +6,8 @@ import {
   PENDING_SUBMISSION_STATUS,
   FAILED_SUBMISSION_STATUS,
   SUCCESS_SUBMISSION_STATUS
-} from './support/queries' ;
-import { waitForDatabase } from './database-utils';
+} from './support/queries.js' ;
+import { waitForDatabase } from './database-utils.js';
 import { 
   getPendingTasks,
   requiresMelding,
@@ -17,16 +17,20 @@ import {
   updateTask,
   updatePublishedResourceStatus,
   getPublishedResourcesFromDelta ,
-  getResourcesWithoutTask
-} from './support/queries';
-import { executeSubmitTask } from './support/pipeline';
+  getResourcesWithoutTask,
+  refreshReportingData
+} from './support/queries.js';
+import { executeSubmitTask } from './support/pipeline.js';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
 import { Mutex } from 'async-mutex';
 
+
 const mutex = new Mutex();
 
+
 const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
+const CRON_DATA_REFRESH = process.env.DATA_REFRESH_CRON_PATTERN || '0 0 5 */1 * *'; //Every day at 5:00
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS || 10);
 
 waitForDatabase(rescheduleUnproccessedTasks.bind(this, true));
@@ -44,6 +48,22 @@ app.post('/submit-publication', async function( req, res ){
   processPublishedResources(publishedResourceUris);
   res.send({message: `Started.`});
 });
+
+app.post('/refresh-reporting-data', async function (req, res) {
+  await refreshReportingData();
+  res.send({ message: 'Reporting data will be refreshed' });
+});
+
+app.get('/test-if-melding', async function (req, res) {
+  try {
+    const needsMelding = await requiresMelding(req.query.resource);
+    res.json({ needsMelding });
+  }
+  catch (error) {
+    console.error(error);
+    res.json({ error: 'There seems to have occured an error.', errorobject: error  });
+  }
+})
 
 app.use(errorHandler);
 
@@ -174,3 +194,15 @@ new CronJob(CRON_FREQUENCY, async function() {
     console.log(err);
   }
 }, null, true);
+
+new CronJob(CRON_DATA_REFRESH, async function () {
+  try {
+    console.log('Starting the cron job on reporting data');
+    await refreshReportingData();
+    console.log('Initial refresh started');
+  } catch (err) {
+    console.error("Error while refreshing the reporting data:", err);
+  }
+}, null, true);
+
+refreshReportingData();
