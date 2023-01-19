@@ -296,7 +296,10 @@ async function requiresMelding(resource) {
                   ext:uittrekselBvap ?behandelingVanAgendapunt .
         ?behandelingVanAgendapunt prov:generated ?besluit .
         ?besluit rdf:type ?besluitType .
-        FILTER (STRSTARTS(STR(?besluitType), "https://data.vlaanderen.be/id/concept/BesluitType/"))
+        FILTER (
+          (STRSTARTS(STR(?besluitType), "https://data.vlaanderen.be/id/concept/BesluitType/")) ||
+          (STRSTARTS(STR(?besluitType), "https://data.vlaanderen.be/id/concept/BesluitDocumentType/"))
+        )
       }
     }
   `;
