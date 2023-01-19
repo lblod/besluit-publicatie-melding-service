@@ -302,20 +302,14 @@ async function requiresMelding(resource) {
   `;
   const results = await query(informationQuery);
   const informationObject = parseResult(results)[0];
-  console.log('RESULTS:', results);
-  console.log('INFORMATION ABOUT PUBLISHED RESOURCE', informationObject);
-
+  console.log(`TESTING IF RESOURCE ${resource} REQUIRES MELDING`);
   //Make sure that if no date was found, the date of this moment is taken (should only be minutes after the real publication)
   informationObject.publicationDate = informationObject.publicationDate || new Date();
-
   //Check if document type needs reporting
   const documentNeedsNotification = REPORTING_DATA_BESLUIT_DOCUMENT_TYPES
     .some((type) => {
-      console.log('URI TEST:', type.subject, type.subjectAliasses, informationObject.documentType);
       if (type.subject != informationObject.documentType && !type.subjectAliasses.find((alias) => alias == informationObject.documentType)) return false;
-      console.log('CODE TEST:', type.bestuurseenheidclassificatiecode, informationObject.bestuurseenheidclassificatiecode);
       if (type.bestuurseenheidclassificatiecode != informationObject.bestuurseenheidclassificatiecode) return false;
-      console.log('DATE TEST:', type.validFrom, type.validThrough, informationObject.publicationDate);
       //No date range exists, this rule is invalid
       if (!(type.validFrom || type.validThrough))
         return false;
@@ -328,7 +322,6 @@ async function requiresMelding(resource) {
       return type.obligationToReport;
     }) &&
     !!(BESTUURSORGANEN_NEED_PUBLISHING.find((orgaancode) => {
-      console.log('ORGAAN TEST:', informationObject.bestuursorgaanclassificatiecode, orgaancode);
       return orgaancode == informationObject.bestuursorgaanclassificatiecode
     }));
   console.log('DOCUMENT NEEDS MELDING:', documentNeedsNotification);

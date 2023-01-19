@@ -25,7 +25,9 @@ import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
 import { Mutex } from 'async-mutex';
 
+
 const mutex = new Mutex();
+
 
 const CRON_FREQUENCY = process.env.RESCHEDULE_CRON_PATTERN || '0 0 * * *';
 const CRON_DATA_REFRESH = process.env.DATA_REFRESH_CRON_PATTERN || '0 0 5 */1 * *'; //Every day at 5:00
@@ -203,4 +205,4 @@ new CronJob(CRON_DATA_REFRESH, async function () {
   }
 }, null, true);
 
-await refreshReportingData();
+refreshReportingData();
