@@ -70,32 +70,35 @@ app.use(errorHandler);
 async function processPublishedResources(publishedResourceUris){
   const release = await mutex.acquire();
   for(const pr of publishedResourceUris){
-
-    if(!(await requiresMelding(pr))){
-      console.log(`No melding required for ${pr}`);
-      continue;
-    };
-
-    let task = await getTaskForResource(pr);
-    if(task){
-      console.log(`A task already exists for ${pr}, skipping`);
-      continue; //We assume this is picked up previously
-    }
-
-    task = await createTask(pr);
-
-    try{
-      const response = await executeSubmitTask(task);
-      if (response.ok) {
-        await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+    try {
+      if(!(await requiresMelding(pr))){
+        console.log(`No melding required for ${pr}`);
+        continue;
+      };
+  
+      let task = await getTaskForResource(pr);
+      if(task){
+        console.log(`A task already exists for ${pr}, skipping`);
+        continue; //We assume this is picked up previously
       }
-      else {
-        handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+  
+      task = await createTask(pr);
+  
+      try{
+        const response = await executeSubmitTask(task);
+        if (response.ok) {
+          await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+          await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+        }
+        else {
+          handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+        }
       }
-    }
-    catch(error){
-      handleTaskError(error, task);
+      catch(error){
+        handleTaskError(error, task);
+      }
+    } catch(error){
+      console.error('Failed processing published resource: ', pr);
     }
   }
   release();
@@ -135,25 +138,30 @@ async function scheduleRetryProcessing(task){
 
 async function rescheduleUnproccessedTasks(firstTime){
   const release = await mutex.acquire();
-  const tasks = [ ...(await getPendingTasks()) ];
-  if(firstTime) {
-    const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
-    tasks.push(...failedTasks);
-  }
-  for(let task of tasks){
-    try {
-      await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
-      await executeSubmitTask(task);
+  try {
+    const tasks = [ ...(await getPendingTasks()) ];
+    if(firstTime) {
+      const failedTasks = await getFailedTasksForRetry(MAX_ATTEMPTS);
+      tasks.push(...failedTasks);
     }
-    catch(error){
-      //if rescheduling fails, we consider there is something really broken...
-      console.log(`Fatal error for ${task.subject}`);
-      await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+    for(let task of tasks){
+      try {
+        await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
+        await executeSubmitTask(task);
+      }
+      catch(error){
+        //if rescheduling fails, we consider there is something really broken...
+        console.log(`Fatal error for ${task.subject}`);
+        await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
+        await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+      }
     }
+  } catch(error){
+    console.error('Failed rescheduling unprocessed tasks')
+  } finally {
+    release();
   }
-  release();
 };
 
 async function proccessResourcesWithoutTask() {
