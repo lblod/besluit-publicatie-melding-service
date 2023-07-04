@@ -63,10 +63,10 @@ async function createPayloadToSubmit(type, extractedResource, zittingId, bestuur
       because they are not a decison type in themselves so we need to pass the decision contained in them as payload.
     */
     const uittrekselUuid = await getUuid(extractedResource);
-    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}/${uittrekselUuid}`;
+    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/zittingen/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}/${uittrekselUuid}`;
     extractedResource = await getDecisionFromUittreksel(extractedResource);
   } else {
-    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`;
+    href = SOURCE_HOST + `/${bestuurseenheidLabel}/${classificatieLabel}/zittingen/${zittingId}/${RESOURCE_TO_URL_TYPE_MAP[type]}`;
   }
 
   return {
