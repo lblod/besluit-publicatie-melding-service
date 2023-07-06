@@ -306,6 +306,7 @@ async function requiresMelding(resource) {
   const results = await query(informationQuery);
   const informationObject = parseResult(results)[0];
   if(!informationObject){
+    console.error(`Querying information about ${resource} gave no results. This should not happen.`)
     return false;
   }
   console.log(`TESTING IF RESOURCE ${resource} REQUIRES MELDING`);
