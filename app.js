@@ -5,7 +5,10 @@ import {
   SUCCESS_STATUS,
   PENDING_SUBMISSION_STATUS,
   FAILED_SUBMISSION_STATUS,
-  SUCCESS_SUBMISSION_STATUS
+  SUCCESS_SUBMISSION_STATUS,
+  ALREADY_SUBMITED_STATUS,
+  ALREADY_SUBMITED_SUBMISSION_STATUS,
+  updatePublishedResourceStatus
 } from './support/queries.js' ;
 import { waitForDatabase } from './database-utils.js';
 import { 
@@ -89,6 +92,18 @@ async function processPublishedResources(publishedResourceUris){
         if (response.ok) {
           await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
           await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+        } else if (response.status === 409) {
+          await updateTask(
+            task.subject,
+            ALREADY_SUBMITED_STATUS,
+            task.numberOfRetries
+          );
+          await updatePublishedResourceStatus(
+            task.involves,
+            ALREADY_SUBMITED_SUBMISSION_STATUS
+          );
+          const responseJson = await response.json();
+          await generateAlreadySubmittedLog(responseJson);
         }
         else {
           handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);

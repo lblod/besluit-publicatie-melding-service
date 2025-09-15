@@ -535,20 +535,60 @@ async function getResourcesWithoutTask() {
   return parsedResult;
 }
 
-export { refreshReportingData,
-         createTask,
-         requiresMelding,
-         getTaskForResource,
-         getPendingTasks,
-         getFailedTasksForRetry,
-         updateTask,
-         updatePublishedResourceStatus,
-         getTask,
-         getPublishedResourcesFromDelta,
-         getExtractedResourceDetailsFromPublishedResource,
-         getPublishedResourcesWithoutAssociatedTask,
-         getUuid,
-         getDecisionFromUittreksel,
-         getResourcesWithoutTask,
-         PENDING_STATUS, FAILED_STATUS, SUCCESS_STATUS,
-         PENDING_SUBMISSION_STATUS, FAILED_SUBMISSION_STATUS, SUCCESS_SUBMISSION_STATUS }
+async function generateAlreadySubmittedLog(responseJson) {
+  const logEntryUuid = uuid();
+  const logEntryUri = `http://data.lblod.info/id/log-entries/${logEntryUuid}`;
+  const logLevel =
+    "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/rlog#WARN";
+  const now = new Date();
+  const source = "besluit-publicatie-melding-service";
+  let message;
+  if (responseJson.errors && responseJson.errors.length) {
+    message = responseJson.errors.map((error) => error.title).join("\n ");
+  }
+  
+  let queryString = `
+    PREFIX rlog: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/rlog#>
+    PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+    PREFIX dct: <http://purl.org/dc/terms/>
+    INSERT DATA {
+      GRAPH <http://mu.semte.ch/graphs/public> {
+        ${sparqlEscapeUri(logEntryUri)} a rlog:Entry;
+          mu:uuid ${sparqlEscapeString(logEntryUuid)};
+          rlog:level ${sparqlEscapeUri(logLevel)};
+          rlog:message ${sparqlEscapeString(message)};
+          rlog:date ${sparqlEscapeDateTime(now)};
+          dct:created ${sparqlEscapeDateTime(now)};
+          dct:source ${sparqlEscapeString(source)}.
+      }
+    }
+  `;
+  await update(queryString);
+}
+
+export {
+  refreshReportingData,
+  createTask,
+  requiresMelding,
+  getTaskForResource,
+  getPendingTasks,
+  getFailedTasksForRetry,
+  updateTask,
+  updatePublishedResourceStatus,
+  getTask,
+  getPublishedResourcesFromDelta,
+  getExtractedResourceDetailsFromPublishedResource,
+  getPublishedResourcesWithoutAssociatedTask,
+  getUuid,
+  getDecisionFromUittreksel,
+  getResourcesWithoutTask,
+  PENDING_STATUS,
+  FAILED_STATUS,
+  SUCCESS_STATUS,
+  PENDING_SUBMISSION_STATUS,
+  FAILED_SUBMISSION_STATUS,
+  SUCCESS_SUBMISSION_STATUS,
+  ALREADY_SUBMITED_STATUS,
+  ALREADY_SUBMITED_SUBMISSION_STATUS,
+  generateAlreadySubmittedLog,
+};
