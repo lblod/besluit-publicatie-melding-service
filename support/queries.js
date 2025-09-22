@@ -9,9 +9,12 @@ const DEFAULT_GRAPH = (process.env || {}).DEFAULT_GRAPH || 'http://mu.semte.ch/g
 const PENDING_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/ongoing";
 const FAILED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/failure";
 const SUCCESS_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/success";
+const ALREADY_SUBMITED_STATUS = "http://lblod.data.gift/besluit-publicatie-melding-statuses/already-submitted";
 const PENDING_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/ongoing";
 const FAILED_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/failure";
 const SUCCESS_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/success";
+const ALREADY_SUBMITED_SUBMISSION_STATUS = "http://lblod.data.gift/publication-submission-statuses/already-submitted";
+
 
 const BESLUIT_TYPES_ENDPOINT = (process.env || {}).BESLUIT_TYPES_ENDPOINT || 'https://centrale-vindplaats.lblod.info/sparql';
 const BESTUURSORGANEN_NEED_PUBLISHING = [
