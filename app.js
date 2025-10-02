@@ -8,7 +8,6 @@ import {
   SUCCESS_SUBMISSION_STATUS,
   ALREADY_SUBMITED_STATUS,
   ALREADY_SUBMITED_SUBMISSION_STATUS,
-  updatePublishedResourceStatus
 } from './support/queries.js' ;
 import { waitForDatabase } from './database-utils.js';
 import { 
