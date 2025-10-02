@@ -538,7 +538,7 @@ async function getResourcesWithoutTask() {
   return parsedResult;
 }
 
-async function generateAlreadySubmittedLog(responseJson) {
+async function generateAlreadySubmittedLog(responseJson, resourceUri) {
   const logEntryUuid = uuid();
   const logEntryUri = `http://data.lblod.info/id/log-entries/${logEntryUuid}`;
   const logLevel =
@@ -548,6 +548,8 @@ async function generateAlreadySubmittedLog(responseJson) {
   let message;
   if (responseJson.errors && responseJson.errors.length) {
     message = responseJson.errors.map((error) => error.title).join("\n ");
+  } else {
+    message = `Error: the resource ${resourceUri} was already submitted at the endpoint`
   }
   
   let queryString = `

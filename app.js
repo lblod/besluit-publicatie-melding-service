@@ -26,6 +26,9 @@ import { executeSubmitTask } from './support/pipeline.js';
 import bodyParser from 'body-parser';
 import { CronJob } from 'cron';
 import { Mutex } from 'async-mutex';
+import {
+	StatusCodes,
+} from 'http-status-codes';
 
 
 const mutex = new Mutex();
@@ -91,7 +94,7 @@ async function processPublishedResources(publishedResourceUris){
         if (response.ok) {
           await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
           await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
-        } else if (response.status === 409) {
+        } else if (response.status === StatusCodes.CONFLICT) {
           await updateTask(
             task.subject,
             ALREADY_SUBMITED_STATUS,
@@ -102,7 +105,7 @@ async function processPublishedResources(publishedResourceUris){
             ALREADY_SUBMITED_SUBMISSION_STATUS
           );
           const responseJson = await response.json();
-          await generateAlreadySubmittedLog(responseJson);
+          await generateAlreadySubmittedLog(responseJson, task.involves);
         }
         else {
           handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
