@@ -1,4 +1,4 @@
-pipeline:
+steps:
   release:
     image: plugins/docker
     settings:
