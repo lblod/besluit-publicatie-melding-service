@@ -166,10 +166,7 @@ async function rescheduleUnproccessedTasks(firstTime){
         await executeSubmitTask(task);
       }
       catch(error){
-        //if rescheduling fails, we consider there is something really broken...
-        console.log(`Fatal error for ${task.subject}`);
-        await updateTask(task.subject, FAILED_STATUS, task.numberOfRetries);
-        await updatePublishedResourceStatus(task.involves, FAILED_SUBMISSION_STATUS);
+        handleTaskError(error, task);
       }
     }
   } catch(error){
