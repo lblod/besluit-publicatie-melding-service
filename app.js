@@ -20,7 +20,8 @@ import {
   updatePublishedResourceStatus,
   getPublishedResourcesFromDelta ,
   getResourcesWithoutTask,
-  refreshReportingData
+  refreshReportingData,
+  generateAlreadySubmittedLog
 } from './support/queries.js';
 import { executeSubmitTask } from './support/pipeline.js';
 import bodyParser from 'body-parser';
