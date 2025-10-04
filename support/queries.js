@@ -538,7 +538,7 @@ async function getResourcesWithoutTask() {
   return parsedResult;
 }
 
-async function generateAlreadySubmittedLog(responseJson, resourceUri) {
+async function generateAlreadySubmittedLog(responseJson, resourceUri, taskUri) {
   const logEntryUuid = uuid();
   const logEntryUri = `http://data.lblod.info/id/log-entries/${logEntryUuid}`;
   const logLevel =
@@ -562,6 +562,7 @@ async function generateAlreadySubmittedLog(responseJson, resourceUri) {
           mu:uuid ${sparqlEscapeString(logEntryUuid)};
           rlog:level ${sparqlEscapeUri(logLevel)};
           rlog:message ${sparqlEscapeString(message)};
+          rlog:resource ${sparqlEscapeUri(taskUri)};
           rlog:date ${sparqlEscapeDateTime(now)};
           dct:created ${sparqlEscapeDateTime(now)};
           dct:source ${sparqlEscapeString(source)}.

@@ -106,7 +106,7 @@ async function processPublishedResources(publishedResourceUris){
             ALREADY_SUBMITED_SUBMISSION_STATUS
           );
           const responseJson = await response.json();
-          await generateAlreadySubmittedLog(responseJson, task.involves);
+          await generateAlreadySubmittedLog(responseJson, task.involves, task.subject);
         }
         else {
           handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
