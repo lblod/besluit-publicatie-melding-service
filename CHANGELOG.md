@@ -1,4 +1,11 @@
+## 0.6.2 (2025-10-21)
 
+#### :bug: Bug Fix
+* [#14](https://github.com/lblod/besluit-publicatie-melding-service/pull/14) Fix error handling in rescheduleUnproccessedTasks ([@cecemel](https://github.com/cecemel))
+* [#15](https://github.com/lblod/besluit-publicatie-melding-service/pull/15) Correctly process the already submitted error from the automatic submission service ([@lagartoverde](https://github.com/lagartoverde))
+
+#### Committers: 1
+- Oscar Rodriguez ([@lagartoverde](https://github.com/lagartoverde))
 
 ## 0.6.1 (2023-07-07)
 
