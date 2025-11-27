@@ -91,26 +91,7 @@ async function processPublishedResources(publishedResourceUris){
       task = await createTask(pr);
   
       try{
-        const response = await executeSubmitTask(task);
-        if (response.ok) {
-          await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-          await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
-        } else if (response.status === StatusCodes.CONFLICT) {
-          await updateTask(
-            task.subject,
-            ALREADY_SUBMITED_STATUS,
-            task.numberOfRetries
-          );
-          await updatePublishedResourceStatus(
-            task.involves,
-            ALREADY_SUBMITED_SUBMISSION_STATUS
-          );
-          const responseJson = await response.json();
-          await generateAlreadySubmittedLog(responseJson, task.involves, task.subject);
-        }
-        else {
-          handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
-        }
+        await processTask(task)
       }
       catch(error){
         handleTaskError(error, task);
@@ -146,7 +127,7 @@ async function scheduleRetryProcessing(task){
       console.log(`Retry for task ${task.subject}`);
       await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
       await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
-      await executeSubmitTask(task);
+      await processTask(task);
     }
     catch(error){
       handleTaskError(error, task);
@@ -166,7 +147,7 @@ async function rescheduleUnproccessedTasks(firstTime){
       try {
         await updateTask(task.subject, PENDING_STATUS, task.numberOfRetries);
         await updatePublishedResourceStatus(task.involves, PENDING_SUBMISSION_STATUS);
-        await executeSubmitTask(task);
+        await processTask(task);
       }
       catch(error){
         handleTaskError(error, task);
@@ -192,9 +173,7 @@ async function proccessResourcesWithoutTask() {
     const task = await createTask(resourceUri);
 
     try{
-      await executeSubmitTask(task);
-      await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
-      await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+      await processTask(task);
     }
     catch(error){
       handleTaskError(error, task);
@@ -229,3 +208,27 @@ new CronJob(CRON_DATA_REFRESH, async function () {
 }, null, true);
 
 refreshReportingData();
+
+
+async function processTask(task) {
+  const response = await executeSubmitTask(task);
+  if (response.ok) {
+    await updateTask(task.subject, SUCCESS_STATUS, task.numberOfRetries);
+    await updatePublishedResourceStatus(task.involves, SUCCESS_SUBMISSION_STATUS);
+  } else if (response.status === StatusCodes.CONFLICT) {
+    await updateTask(
+      task.subject,
+      ALREADY_SUBMITED_STATUS,
+      task.numberOfRetries
+    );
+    await updatePublishedResourceStatus(
+      task.involves,
+      ALREADY_SUBMITED_SUBMISSION_STATUS
+    );
+    const responseJson = await response.json();
+    await generateAlreadySubmittedLog(responseJson, task.involves, task.subject);
+  }
+  else {
+    handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+  }
+}
