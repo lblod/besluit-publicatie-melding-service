@@ -1,3 +1,11 @@
+## 0.6.3 (2025-12-08)
+
+#### :bug: Bug Fix
+* [#16](https://github.com/lblod/besluit-publicatie-melding-service/pull/16) Task retries were not responding well to 409 errors([@lagartoverde](https://github.com/lagartoverde))
+
+#### Committers: 1
+- Oscar Rodriguez ([@lagartoverde](https://github.com/lagartoverde))
+
 ## 0.6.2 (2025-10-21)
 
 #### :bug: Bug Fix
