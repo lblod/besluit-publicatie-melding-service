@@ -1,3 +1,11 @@
+## 0.6.4 (2025-12-09)
+
+#### :bug: Bug Fix
+* Improve logging ([@lagartoverde](https://github.com/lagartoverde))
+
+#### Committers: 1
+- Oscar Rodriguez ([@lagartoverde](https://github.com/lagartoverde))
+
 ## 0.6.3 (2025-12-08)
 
 #### :bug: Bug Fix
