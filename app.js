@@ -229,6 +229,6 @@ async function processTask(task) {
     await generateAlreadySubmittedLog(responseJson, task.involves, task.subject);
   }
   else {
-    handleTaskError("error submitting resource ${pr}, status: ${response.statusText}. ${body.text()}", task);
+    handleTaskError(`error submitting resource, status: ${response.statusText}. ${(await response.text())}`, task);
   }
 }
